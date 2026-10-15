@@ -33,12 +33,13 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 .stat b{display:block;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;color:#000;letter-spacing:-.02em}
 .big b{font-size:34px}
 .hint{font-size:13px;color:#5c7280;margin-top:10px}
+.loc{position:absolute;right:10px;bottom:10px;z-index:2;background:#fff;color:#000;border:1px solid var(--line);border-radius:22px;padding:10px 14px;font-size:15px;font-weight:700;box-shadow:0 1px 5px #0003}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
 <header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg">Sleutel</button></header>
 <nav><button id="t1" class="on">Plannen</button><button id="t2">Lopen</button></nav>
-<div id="mw"><div id="map"></div><div id="warn"></div></div>
+<div id="mw"><div id="map"></div><div id="warn"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
 <div class="panel" id="p1">
   <div class="stat big"><span>Lengte van de route</span><b id="pd">0.00 km</b></div>
@@ -74,9 +75,10 @@ const line=c=>c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates
 
 let key=rd('ors')||'', saved=rd('routes')||[], runs=rd('runs')||[];
 let wps=[], mk=[], route=[], rlen=0, mode='plan', me=null, meMk=null, watching=false, ready=false;
+let warned=false, centered=false;
 let state='idle', acc=0, seg=0, dist=0, pts=[], gap=false, lock=null;
 
-const map=new maplibregl.Map({container:'map',center:[4.9,52.37],zoom:12,
+const map=new maplibregl.Map({container:'map',center:rd('last')||[5.3,52.2],zoom:rd('last')?14:7,
   style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
 map.on('load',()=>{
   map.addSource('route',{type:'geojson',data:empty});
@@ -86,7 +88,6 @@ map.on('load',()=>{
   map.addLayer({id:'tl',type:'line',source:'trail',paint:{'line-color':'#000','line-width':4},layout:{'line-cap':'round','line-join':'round'}});
   ready=true;
 });
-navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>map.jumpTo({center:[p.coords.longitude,p.coords.latitude],zoom:14}),()=>{});
 
 function setRoute(c,d){
   route=c;rlen=d;
@@ -143,10 +144,11 @@ $('#t1').onclick=()=>tab('plan');$('#t2').onclick=()=>tab('run');
 
 function watch(){
   if(watching)return;watching=true;
-  navigator.geolocation.watchPosition(onPos,e=>alert('Locatie niet beschikbaar: '+e.message+'. Zet locatietoegang voor Safari aan.'),{enableHighAccuracy:true,maximumAge:0});
+  navigator.geolocation.watchPosition(onPos,e=>{if(!warned){warned=true;alert('Locatie niet beschikbaar: '+e.message+'. Zet locatietoegang aan voor deze website.')}},{enableHighAccuracy:true,maximumAge:0});
 }
 function onPos(p){
-  const ll=[p.coords.longitude,p.coords.latitude];me=ll;
+  const ll=[p.coords.longitude,p.coords.latitude];me=ll;wr('last',ll);
+  if(!centered){centered=true;map.jumpTo({center:ll,zoom:15})}
   if(!meMk){const e=document.createElement('div');e.className='me';meMk=new maplibregl.Marker({element:e}).setLngLat(ll).addTo(map)}else meMk.setLngLat(ll);
   if(mode==='run'&&route.length){
     let m=1e9;for(const c of route){const d=hav(c,ll);if(d<m)m=d}
@@ -191,5 +193,6 @@ $('#stop').onclick=()=>{
   if(lock){lock.release();lock=null}
 };
 function hist(){$('#hist').innerHTML=runs.slice(0,3).map(r=>`${r.d}: ${r.km} km in ${r.t}`).join('<br>')}
-list();hist();
+list();hist();watch();
+$('#loc').onclick=()=>{if(me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)});else{warned=false;alert('Nog geen locatie gevonden. Controleer of locatietoegang aan staat.')}};
 </script></body></html>
