@@ -22,7 +22,7 @@ nav button.on{color:#000;border-color:var(--blue)}
 #mw{flex:1;min-height:0;position:relative}
 #map{position:absolute;inset:0}
 #warn{display:none;position:absolute;left:10px;right:10px;top:10px;background:#000;color:#fff;font-weight:700;padding:10px 12px;border-radius:12px;text-align:center;z-index:2}
-.panel{padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.panel{padding:12px 14px;border-top:1px solid var(--line)}
 .row{display:flex;gap:8px;margin-top:10px}
 .btn{flex:1;padding:14px 8px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-size:17px;font-weight:800}
 .btn.alt{background:var(--tint);color:var(--deep)}
@@ -38,11 +38,31 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 .ri b{font-size:16px;font-weight:800}
 #rl{max-height:36vh;overflow:auto}
 .toast{display:none;position:absolute;left:10px;right:10px;top:10px;background:var(--blue);color:#fff;font-weight:700;padding:10px 12px;border-radius:12px;text-align:center;z-index:3}
+[hidden]{display:none!important}
+#home{flex:1;overflow:auto;padding:28px 22px}
+#home img{width:84px;height:84px;border-radius:20px;display:block}
+#home h2{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:18px 0 10px}
+#home p{font-size:17px;line-height:1.45;max-width:34em}
+#home .note{margin-top:12px;font-weight:700}
+#home .btn{display:block;width:100%;flex:none;margin-top:12px}
+#home .btn:first-of-type{margin-top:24px}
+#bar{display:flex;border-top:1px solid var(--line);background:#fff;padding-bottom:env(safe-area-inset-bottom)}
+#bar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;border:0;background:none;font-size:11px;font-weight:700;color:#5c7280;box-shadow:inset 0 3px 0 transparent}
+#bar button.on{color:var(--deep);box-shadow:inset 0 3px 0 var(--blue)}
+#bar svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
 <header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg">Sleutel</button></header>
-<nav><button id="t1" class="on">Plannen</button><button id="t2">Lopen</button><button id="t3">Historie</button></nav>
+<div id="home">
+  <img src="icon.png" alt="">
+  <h2>Welkom bij de Stukkie app</h2>
+  <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
+  <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
+  <button class="btn" data-go="plan">Route plannen</button>
+  <button class="btn alt" data-go="run">Naar lopen</button>
+  <p class="hint">Voor het plannen van routes heb je een gratis OpenRouteService-sleutel nodig. Tik rechtsboven op Sleutel om hem in te vullen.</p>
+</div>
 <div id="mw"><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
 <div class="panel" id="p1">
@@ -78,6 +98,13 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   </div>
   <div id="rl"></div>
   <p class="hint" id="rhint"></p>
+</div>
+
+<div id="bar">
+  <button id="b-home" data-t="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home</button>
+  <button id="b-plan" data-t="plan"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Plannen</button>
+  <button id="b-run" data-t="run"><svg viewBox="0 0 24 24"><circle cx="15.5" cy="4.5" r="1.6"/><path d="M13.5 8.5L11 13"/><path d="M13.4 8.8l3.3 1.7 2.3-1.2M12.6 9.4l-3 .6-1.6 2.6"/><path d="M11 13l3.5 2-1 5"/><path d="M11 13l-3 3.5-3.5 1.5"/></svg>Lopen</button>
+  <button id="b-hist" data-t="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Historie</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
@@ -154,14 +181,17 @@ $('#del').onclick=()=>{
 
 function tab(m){
   mode=m;
-  ['plan','run','hist'].forEach((k,i)=>{$('#t'+(i+1)).classList.toggle('on',k===m);$('#p'+(i+1)).hidden=k!==m});
+  ['home','plan','run','hist'].forEach(k=>$('#b-'+k).classList.toggle('on',k===m));
+  $('#home').hidden=m!=='home';$('#mw').hidden=m==='home';
+  $('#p1').hidden=m!=='plan';$('#p2').hidden=m!=='run';$('#p3').hidden=m!=='hist';
   if(m!=='run')$('#warn').style.display='none';
   if(m!=='hist'&&state==='idle'&&ready)map.getSource('trail').setData(empty);
   setTimeout(()=>map.resize(),50);
   if(m==='run')watch();
   if(m==='hist')showList();
 }
-$('#t1').onclick=()=>tab('plan');$('#t2').onclick=()=>tab('run');$('#t3').onclick=()=>tab('hist');
+document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>tab(b.dataset.go));
 
 function watch(){
   if(watching)return;watching=true;
@@ -254,6 +284,6 @@ $('#gpx').onclick=async()=>{
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
   const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove();
 };
-list();hist();watch();
+list();hist();watch();tab('home');
 $('#loc').onclick=()=>{if(me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)});else{warned=false;alert('Nog geen locatie gevonden. Controleer of locatietoegang aan staat.')}};
 </script></body></html>
