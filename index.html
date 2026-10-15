@@ -62,24 +62,26 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 .sp{display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid var(--line);font-size:16px}
 .sp b{font-weight:800}
 .card{margin-top:24px;padding:14px;border-radius:14px;background:var(--tint)}
-#kd{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+#kd,#sd{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
 .dlg{background:#fff;border-radius:16px;padding:18px;max-width:420px;width:100%}
 .dlg h3{font-size:20px;margin-bottom:8px}
 .dlg ol{margin:10px 0 0 20px;line-height:1.45}
 .btn.fly{display:flex;align-items:center;justify-content:center;gap:8px;background:#15803d;color:#fff;width:100%}
 .fly svg{width:20px;height:20px;fill:#fff}
 #p3.playing #det>:not(.flyrow){display:none}
+header svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+.ri small{color:#5c7280;font-size:13px}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
-<header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg">Sleutel</button></header>
+<header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg" aria-label="Instellingen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header>
 <div id="home">
   <img src="icon.png" alt="">
   <h2>Welkom bij de Stukkie app</h2>
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.8</p>
+  <p class="hint">Versie 0.9</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -120,7 +122,7 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
     </div>
     <div class="row flyrow"><button class="btn fly" id="fly"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Flyover afspelen</button></div>
     <div class="row"><button class="btn" id="gpx">Exporteer GPX</button><button class="btn alt" id="rdel">Verwijder</button></div>
-    <div class="row"><button class="btn alt" id="back">Terug naar de lijst</button></div>
+    <div class="row"><button class="btn alt" id="ren">Naam wijzigen</button><button class="btn alt" id="back">Terug naar de lijst</button></div>
     <div id="h-s"></div>
   </div>
   <div id="rl"></div>
@@ -134,6 +136,13 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   <button id="b-hist" data-t="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Historie</button>
 </div>
 
+<div id="sd" hidden><div class="dlg">
+  <h3>Instellingen</h3>
+  <p class="sec" style="margin-top:6px">Sleutel</p>
+  <p class="hint" id="sk"></p>
+  <div class="row"><button class="btn alt" id="skb">Sleutel wijzigen</button></div>
+  <div class="row"><button class="btn" id="sx">Sluiten</button></div>
+</div></div>
 <div id="kd" hidden><div class="dlg">
   <h3>Sleutel voor routes</h3>
   <p>Stukkie gebruikt OpenRouteService om routes te berekenen. Daarvoor heb je eenmalig een gratis sleutel nodig:</p>
@@ -194,7 +203,10 @@ function openKey(){$('#ki').value=key;$('#kd').hidden=false}
 function keyUI(){$('#keycard').hidden=!!key}
 $('#kx').onclick=()=>{$('#kd').hidden=true};
 $('#ks').onclick=()=>{const k=$('#ki').value.trim();$('#kd').hidden=true;if(!k)return;key=k;wr('ors',key);keyUI();if(wps.length>1)calc()};
-$('#cfg').onclick=openKey;$('#kopen').onclick=openKey;
+$('#cfg').onclick=()=>{$('#sk').textContent=key?'Er is een sleutel ingesteld.':'Er is nog geen sleutel ingesteld.';$('#sd').hidden=false};
+$('#skb').onclick=()=>{$('#sd').hidden=true;openKey()};
+$('#sx').onclick=()=>{$('#sd').hidden=true};
+$('#kopen').onclick=openKey;
 async function ors(body){
   const r=await fetch('https://api.openrouteservice.org/v2/directions/foot-walking/geojson',{method:'POST',headers:{Authorization:key,'Content-Type':'application/json'},body:JSON.stringify(Object.assign({elevation:true},body))});
   const j=await r.json();
@@ -426,19 +438,26 @@ function routeVis(v){
   if(ready)['rc','rl'].forEach(id=>map.setLayoutProperty(id,'visibility',v?'visible':'none'));
   mk.forEach(x=>{x.getElement().style.display=v?'':'none'});
 }
+const title=r=>r.n||(new Date(r.s).getHours()<12?'Ochtendrun':new Date(r.s).getHours()<18?'Middagrun':'Avondrun');
+$('#ren').onclick=()=>{
+  const r=runs[cur];if(!r)return;
+  const n=prompt('Naam van de run?',r.n||'');if(n===null)return;
+  r.n=n.trim().slice(0,60);if(!r.n)delete r.n;
+  wr('runs2',runs);openRun(cur);
+};
 let cur=-1;
 const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
 function showList(){
   stopFly();cur=-1;$('#det').hidden=true;$('#rl').hidden=false;$('#mw').hidden=true;$('#p3').classList.add('full');
   if(state==='idle'&&ready)map.getSource('trail').setData(empty);
-  $('#rl').innerHTML=runs.map((r,i)=>`<button class="ri" data-i="${i}"><b>${fmt(r)}</b><span>${(r.dist/1000).toFixed(2)} km, ${tm(r.ms)}, ${pace((r.ms>0?r.dist/(r.ms/1000):0))} min/km</span></button>`).join('');
+  $('#rl').innerHTML=runs.map((r,i)=>`<button class="ri" data-i="${i}"><b>${esc(title(r))}</b><small>${fmt(r)}</small><span>${(r.dist/1000).toFixed(2)} km, ${tm(r.ms)}, ${pace((r.ms>0?r.dist/(r.ms/1000):0))} min/km</span></button>`).join('');
   $('#rhint').textContent=runs.length?'':'Nog geen runs. Je eerste run verschijnt hier nadat je op Stop tikt.';
 }
 $('#rl').onclick=e=>{const b=e.target.closest('.ri');if(b)openRun(+b.dataset.i)};
 function openRun(i){
   const r=runs[i];if(!r)return;cur=i;
   $('#rl').hidden=true;$('#det').hidden=false;$('#rhint').textContent='';$('#mw').hidden=false;$('#p3').classList.remove('full');map.resize();
-  $('#h-n').textContent=fmt(r);$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace((r.ms>0?r.dist/(r.ms/1000):0));
+  $('#h-n').innerHTML=esc(title(r))+'<br><small style="font-weight:600;color:#5c7280">'+fmt(r)+'</small>';$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace((r.ms>0?r.dist/(r.ms/1000):0));
   const v=r.ms>0?r.dist/(r.ms/1000):0;$('#h-v').textContent=(v*3.6).toFixed(1);
   const a=ascent(r);$('#h-e').textContent=a==null?'–':a;
   const sp=splits(r);$('#h-s').innerHTML=sp.length?'<p class="sec">Tempo per kilometer (min/km)</p>'+sp.map(x=>`<div class="sp"><span>${x.l}</span><b>${ps(x.s)}</b></div>`).join(''):'';
@@ -450,7 +469,7 @@ $('#back').onclick=showList;
 $('#rdel').onclick=()=>{if(cur<0||!confirm('Deze run verwijderen? Dit kan niet ongedaan worden gemaakt.'))return;runs.splice(cur,1);wr('runs2',runs);hist();showList()};
 function gpx(r){
   const t=r.pts.map(p=>`<trkpt lat="${p[1]}" lon="${p[0]}">${p[5]!=null?`<ele>${p[5]}</ele>`:''}<time>${new Date(p[2]*1000).toISOString()}</time></trkpt>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Stukkie" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Run ${fmt(r)}</name><type>running</type><trkseg>${t}</trkseg></trk></gpx>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Stukkie" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${esc(title(r))}</name><type>running</type><trkseg>${t}</trkseg></trk></gpx>`;
 }
 $('#gpx').onclick=async()=>{
   const r=runs[cur];if(!r)return;
