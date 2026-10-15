@@ -71,6 +71,24 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 #p3.playing #det>:not(.flyrow){display:none}
 header svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
 .ri small{color:#5c7280;font-size:13px}
+#rs{position:fixed;inset:0;z-index:6;background:#fff;display:flex;flex-direction:column;text-align:center;padding:calc(14px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom))}
+#rs .stat span{font-size:14px}
+#rs .tijd{margin:6px 0 4px}
+#rs .tijd b{font-size:76px;line-height:1.05}
+#rs .g{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:18px 10px;align-content:center}
+#rs .g .stat b{font-size:46px}
+#rs .g .stat:last-child{grid-column:1/3}
+#rs .btn{padding:22px 8px;font-size:22px}
+body.running #p2,body.running #bar{display:none}
+.mapbtn{position:absolute;top:calc(10px + env(safe-area-inset-top));right:14px;background:var(--tint);color:var(--deep);border:0;border-radius:18px;padding:8px 14px;font-size:15px;font-weight:700}
+#rs.mini{top:auto;padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;box-shadow:0 -2px 12px #0003}
+#rs.mini #owarn{display:none!important}
+#rs.mini .tijd b{font-size:44px}
+#rs.mini .g{flex:none;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}
+#rs.mini .g .stat b{font-size:28px}
+#rs.mini .g .stat:nth-child(2),#rs.mini .g .stat:nth-child(4){display:none}
+#rs.mini .g .stat:last-child{grid-column:auto}
+#rs.mini .btn{padding:14px 8px;font-size:18px}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
@@ -81,7 +99,7 @@ header svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-li
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.9</p>
+  <p class="hint">Versie 0.11</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -136,6 +154,19 @@ header svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-li
   <button id="b-hist" data-t="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Historie</button>
 </div>
 
+<div id="rs" hidden>
+  <button id="okaart" class="mapbtn">Kaart</button>
+  <div id="owarn" style="display:none;background:#000;color:#fff;font-weight:700;padding:10px;border-radius:12px"></div>
+  <div class="stat tijd"><span>Tijd</span><b id="o-t">00:00</b></div>
+  <div class="g">
+    <div class="stat"><span>Afstand (km)</span><b id="o-d">0.00</b></div>
+    <div class="stat"><span>Route (km)</span><b id="o-r">–</b></div>
+    <div class="stat"><span>Tempo (min/km)</span><b id="o-p">–</b></div>
+    <div class="stat"><span>Gem. tempo (min/km)</span><b id="o-a">–</b></div>
+    <div class="stat"><span>Snelheid (km/h)</span><b id="o-v">0.0</b></div>
+  </div>
+  <div class="row"><button class="btn" id="ogo">Pauze</button><button class="btn alt" id="ostop">Stop</button></div>
+</div>
 <div id="sd" hidden><div class="dlg">
   <h3>Instellingen</h3>
   <p class="sec" style="margin-top:6px">Sleutel</p>
@@ -185,7 +216,7 @@ map.on('load',()=>{
 function setRoute(c,d,a){
   route=c;rlen=d;rasc=a||0;
   if(ready)map.getSource('route').setData(line(c));
-  $('#pd').textContent=(d/1000).toFixed(2)+' km';$('#pa').textContent=c.length&&a!=null?Math.round(a)+' m':'–';$('#s-r').textContent=(d/1000).toFixed(2);
+  $('#pd').textContent=(d/1000).toFixed(2)+' km';$('#pa').textContent=c.length&&a!=null?Math.round(a)+' m':'–';$('#s-r').textContent=(d/1000).toFixed(2);$('#o-r').textContent=d>0?(d/1000).toFixed(2):'–';
 }
 function fitRoute(){if(route.length<2)return;const b=new maplibregl.LngLatBounds();route.forEach(p=>b.extend([p[0],p[1]]));map.fitBounds(b,{padding:50,maxZoom:17})}
 function pins(){
@@ -299,7 +330,7 @@ function onPos(p){
   if(mode==='run'&&route.length){
     let m=1e9;const k=111320,cx=Math.cos(ll[1]*Math.PI/180),q=[ll[0]*k*cx,ll[1]*k],X=c=>[c[0]*k*cx,c[1]*k];
     for(let i=0;i<route.length;i++){const a=X(route[i]),b=i<route.length-1?X(route[i+1]):a,d=segD(q,a,b);if(d<m)m=d}
-    const w=$('#warn');w.style.display=m>60?'block':'none';w.textContent='Je bent '+Math.round(m)+' m van de route';
+    const w=$('#warn'),w2=$('#owarn'),on=m>60,tx='Je bent '+Math.round(m)+' m van de route';w.style.display=on?'block':'none';w.textContent=tx;w2.style.display=on?'block':'none';w2.textContent=tx;
   }
   if(state!=='run')return;
   map.easeTo({center:ll,duration:600});
@@ -317,9 +348,13 @@ function render(){
   const ms=acc+(state==='run'?Date.now()-seg:0),v=ms>0?dist/(ms/1000):0;
   let cur=0;const n=pts.length;
   if(n>1){const l=pts[n-1];let o=pts[0];for(const q of pts){if(l.t-q.t<=20000){o=q;break}}if(l.t>o.t)cur=(l.cd-o.cd)/((l.t-o.t)/1000)}
-  $('#s-t').textContent=tm(ms);$('#s-d').textContent=(dist/1000).toFixed(2);
-  $('#s-p').textContent=state==='run'?pace(cur):'–';$('#s-a').textContent=pace(v);
-  $('#s-v').textContent=(state==='run'?cur*3.6:v*3.6).toFixed(1);
+  const set=(k,t)=>{$('#s-'+k).textContent=t;$('#o-'+k).textContent=t};
+  set('t',tm(ms));set('d',(dist/1000).toFixed(2));set('p',state==='run'?pace(cur):'–');set('a',pace(v));
+  set('v',(state==='run'?cur*3.6:state==='pause'?0:v*3.6).toFixed(1));
+  $('#rs').hidden=state==='idle';$('#ogo').textContent=state==='pause'?'Hervat':'Pauze';
+  const run=state!=='idle';
+  if(!run&&$('#rs').classList.contains('mini')){$('#rs').classList.remove('mini');$('#okaart').textContent='Kaart'}
+  if(document.body.classList.contains('running')!==run){document.body.classList.toggle('running',run);setTimeout(()=>map.resize(),50)}
 }
 setInterval(render,1000);
 
@@ -445,6 +480,12 @@ $('#ren').onclick=()=>{
   r.n=n.trim().slice(0,60);if(!r.n)delete r.n;
   wr('runs2',runs);openRun(cur);
 };
+$('#okaart').onclick=()=>{
+  const m=$('#rs').classList.toggle('mini');$('#okaart').textContent=m?'Cijfers':'Kaart';
+  setTimeout(()=>{map.resize();if(m&&me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)})},60);
+};
+$('#ogo').onclick=()=>$('#go').click();
+$('#ostop').onclick=()=>$('#stop').click();
 let cur=-1;
 const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
 function showList(){
