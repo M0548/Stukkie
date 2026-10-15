@@ -52,6 +52,8 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 #bar svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #p1{max-height:46vh;overflow:auto}
 #p3{max-height:50vh;overflow:auto}
+#p3.full{flex:1;max-height:none}
+#p3.full #rl{max-height:none}
 .stats2{display:flex;gap:28px}
 .sec{font-weight:800;font-size:15px;margin-top:14px}
 #rk,#ki{flex:1;min-width:0;padding:12px;border-radius:12px;border:1px solid var(--line);font-size:16px;color:#000}
@@ -64,6 +66,9 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 .dlg{background:#fff;border-radius:16px;padding:18px;max-width:420px;width:100%}
 .dlg h3{font-size:20px;margin-bottom:8px}
 .dlg ol{margin:10px 0 0 20px;line-height:1.45}
+.btn.fly{display:flex;align-items:center;justify-content:center;gap:8px;background:#15803d;color:#fff;width:100%}
+.fly svg{width:20px;height:20px;fill:#fff}
+#p3.playing #det>:not(.flyrow){display:none}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
@@ -74,7 +79,7 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.5</p>
+  <p class="hint">Versie 0.8</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -113,6 +118,7 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
       <div class="stat"><span>Snelheid (km/h)</span><b id="h-v">0.0</b></div>
       <div class="stat"><span>Stijging (ca. m)</span><b id="h-e">–</b></div>
     </div>
+    <div class="row flyrow"><button class="btn fly" id="fly"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Flyover afspelen</button></div>
     <div class="row"><button class="btn" id="gpx">Exporteer GPX</button><button class="btn alt" id="rdel">Verwijder</button></div>
     <div class="row"><button class="btn alt" id="back">Terug naar de lijst</button></div>
     <div id="h-s"></div>
@@ -150,13 +156,13 @@ const line=c=>c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates
 
 let key=rd('ors')||'', saved=rd('routes')||[], runs=rd('runs2')||[];
 // Vaste routes voor iedereen: plak hier routecodes tussen de haken, gescheiden door komma's.
-const STARTROUTES=[];
+const STARTROUTES=[{"id":"rmv991g5l","name":"Rondje Oosterhof","wps":[[6.52837,52.30494],[6.52894,52.30639],[6.52911,52.30715],[6.52971,52.30708],[6.53213,52.30591],[6.53454,52.30477],[6.54065,52.30053],[6.54101,52.30029],[6.54139,52.30016],[6.54162,52.30088],[6.5425,52.30232],[6.54286,52.30305],[6.54294,52.30362],[6.54328,52.30431],[6.54352,52.30483],[6.54286,52.30503],[6.53854,52.30617],[6.53866,52.30735],[6.53894,52.30812],[6.53776,52.31078],[6.53742,52.31145],[6.53584,52.31293],[6.53396,52.31238],[6.53326,52.312],[6.53243,52.31211],[6.52979,52.31219],[6.52858,52.31222],[6.5288,52.312],[6.52907,52.31151],[6.52891,52.31112],[6.52906,52.3108],[6.52954,52.31067],[6.53024,52.31088],[6.53027,52.31136],[6.53026,52.31167],[6.53056,52.31192],[6.53115,52.31198],[6.53165,52.31195],[6.53195,52.31191],[6.53243,52.31154],[6.53178,52.31123],[6.53125,52.31096],[6.53087,52.31047],[6.53037,52.30961],[6.5314,52.30922],[6.53316,52.30861],[6.53456,52.30808],[6.53368,52.30712],[6.53162,52.30629]],"route":[[6.52834,52.30494],[6.52889,52.30613],[6.52903,52.3071],[6.52927,52.3071],[6.52943,52.3072],[6.53013,52.30698],[6.53064,52.30675],[6.53297,52.3055],[6.5343,52.30492],[6.53479,52.30465],[6.53553,52.30414],[6.53601,52.30392],[6.53703,52.30319],[6.53728,52.30307],[6.53726,52.30303],[6.53743,52.30299],[6.53769,52.30268],[6.54044,52.30079],[6.54104,52.30059],[6.54089,52.30049],[6.54068,52.30056],[6.54089,52.30049],[6.54088,52.30033],[6.54097,52.30026],[6.54101,52.30029],[6.54097,52.30026],[6.54115,52.3002],[6.54136,52.30022],[6.54141,52.30017],[6.54136,52.30022],[6.54152,52.3004],[6.54145,52.30053],[6.54233,52.30236],[6.5425,52.30232],[6.54286,52.30305],[6.54277,52.30328],[6.54354,52.30486],[6.53853,52.30616],[6.53841,52.30674],[6.53894,52.30804],[6.53893,52.30815],[6.53867,52.30858],[6.53754,52.31129],[6.53629,52.31262],[6.53586,52.31293],[6.5352,52.31291],[6.53471,52.31281],[6.53326,52.312],[6.53298,52.31211],[6.52853,52.31223],[6.5288,52.31202],[6.52882,52.31184],[6.52907,52.31155],[6.5289,52.31107],[6.52894,52.31095],[6.52906,52.31081],[6.52947,52.31069],[6.52997,52.31074],[6.53036,52.311],[6.5302,52.31151],[6.5303,52.31175],[6.53054,52.31193],[6.53128,52.31199],[6.53183,52.31194],[6.53202,52.31188],[6.53244,52.31156],[6.53125,52.31097],[6.53108,52.31083],[6.53036,52.30961],[6.53456,52.3081],[6.53413,52.30749],[6.53376,52.30718],[6.5316,52.3063]],"dist":5215,"asc":38,"rt":false}];
 {const skip=rd('skip')||[];let add=false;for(const sr of STARTROUTES){if(!saved.some(r=>r.id===sr.id)&&!skip.includes(sr.id)){saved.push(sr);add=true}}if(add)wr('routes',saved)}
 let wps=[], mk=[], route=[], rlen=0, mode='plan', me=null, meMk=null, watching=false, ready=false;
 let warned=false, centered=false, rtActive=false, curSel='', dragged=false, calcId=0, rasc=0;
 let state='idle', acc=0, seg=0, dist=0, pts=[], gap=false, lock=null, startTs=0;
 
-const map=new maplibregl.Map({container:'map',center:rd('last')||[5.3,52.2],zoom:rd('last')?14:7,
+const map=new maplibregl.Map({container:'map',maxPitch:75,center:rd('last')||[5.3,52.2],zoom:rd('last')?14:7,
   style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
 map.on('load',()=>{
   map.addSource('route',{type:'geojson',data:empty});
@@ -256,12 +262,13 @@ $('#del').onclick=()=>{
 };
 
 function tab(m){
-  mode=m;mk.forEach(x=>x.setDraggable(m==='plan'));
+  stopFly();mode=m;mk.forEach(x=>x.setDraggable(m==='plan'));
   ['home','plan','run','hist'].forEach(k=>$('#b-'+k).classList.toggle('on',k===m));
-  $('#home').hidden=m!=='home';$('#mw').hidden=m==='home';
+  $('#home').hidden=m!=='home';$('#mw').hidden=m==='home'||m==='hist';
   $('#p1').hidden=m!=='plan';$('#p2').hidden=m!=='run';$('#p3').hidden=m!=='hist';
   if(m!=='run')$('#warn').style.display='none';
   if(m!=='hist'&&state==='idle'&&ready)map.getSource('trail').setData(empty);
+  routeVis(m!=='hist');
   setTimeout(()=>map.resize(),50);
   if(m==='run')watch();
   if(m==='hist')showList();
@@ -368,10 +375,61 @@ $('#cp').onclick=async()=>{
   try{await navigator.clipboard.writeText(t);toast('Routecode gekopieerd. Plak hem in de chat.')}catch(e){prompt('Kopieer deze routecode:',t)}
 };
 if(location.search.includes('maker'))$('#cp').hidden=false;
+let fly=null;
+const brg=(a,b)=>{const r=Math.PI/180,y=Math.sin((b[0]-a[0])*r)*Math.cos(b[1]*r),x=Math.cos(a[1]*r)*Math.sin(b[1]*r)-Math.sin(a[1]*r)*Math.cos(b[1]*r)*Math.cos((b[0]-a[0])*r);return (Math.atan2(y,x)/r+360)%360};
+function pathOf(r){
+  const c=simplify(r.pts.map(p=>[p[0],p[1]]),4),k=111320,cx=Math.cos(c[0][1]*Math.PI/180),L=[0];
+  for(let i=1;i<c.length;i++)L.push(L[i-1]+Math.hypot((c[i][0]-c[i-1][0])*k*cx,(c[i][1]-c[i-1][1])*k));
+  return {c,L,tot:L[L.length-1]};
+}
+function at(P,s){
+  let i=1;while(i<P.L.length-1&&P.L[i]<s)i++;
+  const a=P.L[i-1],b=P.L[i],t=b>a?Math.min(1,Math.max(0,(s-a)/(b-a))):0;
+  return {p:[P.c[i-1][0]+(P.c[i][0]-P.c[i-1][0])*t,P.c[i-1][1]+(P.c[i][1]-P.c[i-1][1])*t],i};
+}
+function setFlyUI(on){
+  $('#p3').classList.toggle('playing',on);
+  $('#fly').innerHTML=(on?'<svg viewBox="0 0 24 24"><path d="M7 6h10v12H7z"/></svg>Flyover stoppen':'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Flyover afspelen');
+  map.resize();
+}
+function stopFly(refit){
+  if(!fly)return;
+  cancelAnimationFrame(fly.raf);fly.mkr.remove();fly=null;setFlyUI(false);
+  map.jumpTo({pitch:0,bearing:0});
+  if(refit&&cur>=0&&runs[cur]){
+    const c=runs[cur].pts.map(p=>[p[0],p[1]]);map.getSource('trail').setData(line(c));
+    const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17});
+  }
+}
+function startFly(){
+  const r=runs[cur];if(!r||r.pts.length<2)return toast('Te weinig gps-punten voor een flyover.');
+  const P=pathOf(r);if(P.tot<30)return toast('Deze run is te kort voor een flyover.');
+  const dur=Math.min(60,Math.max(20,20+P.tot/1000*4))*1000;
+  const dot=document.createElement('div');dot.className='me';
+  const mkr=new maplibregl.Marker({element:dot}).setLngLat(P.c[0]).addTo(map);
+  let bear=brg(P.c[0],at(P,Math.min(120,P.tot)).p),n=0;const t0=performance.now();
+  fly={mkr,raf:0};setFlyUI(true);
+  map.getSource('trail').setData(empty);
+  map.jumpTo({center:P.c[0],zoom:16,pitch:68,bearing:bear});
+  const step=now=>{
+    if(!fly)return;
+    const f=Math.min(1,(now-t0)/dur),s=P.tot*f,a=at(P,s);
+    if(P.tot-s>5){const tb=brg(a.p,at(P,Math.min(P.tot,s+120)).p);bear+=(((tb-bear+540)%360)-180)*0.05}
+    map.jumpTo({center:a.p,bearing:bear});mkr.setLngLat(a.p);
+    if(++n%3===0)map.getSource('trail').setData(line(P.c.slice(0,a.i).concat([a.p])));
+    if(f>=1)stopFly(true);else fly.raf=requestAnimationFrame(step);
+  };
+  fly.raf=requestAnimationFrame(step);
+}
+$('#fly').onclick=()=>{if(fly)stopFly(true);else startFly()};
+function routeVis(v){
+  if(ready)['rc','rl'].forEach(id=>map.setLayoutProperty(id,'visibility',v?'visible':'none'));
+  mk.forEach(x=>{x.getElement().style.display=v?'':'none'});
+}
 let cur=-1;
 const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
 function showList(){
-  cur=-1;$('#det').hidden=true;$('#rl').hidden=false;
+  stopFly();cur=-1;$('#det').hidden=true;$('#rl').hidden=false;$('#mw').hidden=true;$('#p3').classList.add('full');
   if(state==='idle'&&ready)map.getSource('trail').setData(empty);
   $('#rl').innerHTML=runs.map((r,i)=>`<button class="ri" data-i="${i}"><b>${fmt(r)}</b><span>${(r.dist/1000).toFixed(2)} km, ${tm(r.ms)}, ${pace((r.ms>0?r.dist/(r.ms/1000):0))} min/km</span></button>`).join('');
   $('#rhint').textContent=runs.length?'':'Nog geen runs. Je eerste run verschijnt hier nadat je op Stop tikt.';
@@ -379,14 +437,14 @@ function showList(){
 $('#rl').onclick=e=>{const b=e.target.closest('.ri');if(b)openRun(+b.dataset.i)};
 function openRun(i){
   const r=runs[i];if(!r)return;cur=i;
-  $('#rl').hidden=true;$('#det').hidden=false;$('#rhint').textContent='';
+  $('#rl').hidden=true;$('#det').hidden=false;$('#rhint').textContent='';$('#mw').hidden=false;$('#p3').classList.remove('full');map.resize();
   $('#h-n').textContent=fmt(r);$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace((r.ms>0?r.dist/(r.ms/1000):0));
   const v=r.ms>0?r.dist/(r.ms/1000):0;$('#h-v').textContent=(v*3.6).toFixed(1);
   const a=ascent(r);$('#h-e').textContent=a==null?'–':a;
   const sp=splits(r);$('#h-s').innerHTML=sp.length?'<p class="sec">Tempo per kilometer (min/km)</p>'+sp.map(x=>`<div class="sp"><span>${x.l}</span><b>${ps(x.s)}</b></div>`).join(''):'';
   const c=r.pts.map(p=>[p[0],p[1]]);
-  if(ready)map.getSource('trail').setData(line(c));
-  const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17});
+  const draw=()=>{map.getSource('trail').setData(line(c));const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17})};
+  ready?draw():map.once('load',draw);
 }
 $('#back').onclick=showList;
 $('#rdel').onclick=()=>{if(cur<0||!confirm('Deze run verwijderen? Dit kan niet ongedaan worden gemaakt.'))return;runs.splice(cur,1);wr('runs2',runs);hist();showList()};
