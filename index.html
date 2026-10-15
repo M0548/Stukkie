@@ -74,7 +74,7 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.4</p>
+  <p class="hint">Versie 0.5</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -82,10 +82,10 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   <div class="stats2"><div class="stat big"><span>Lengte</span><b id="pd">0.00 km</b></div><div class="stat big"><span>Stijging</span><b id="pa">–</b></div></div>
   <div class="row"><button class="btn alt" id="undo">Ongedaan</button><button class="btn alt" id="clr">Wissen</button><button class="btn alt" id="sv">Opslaan</button></div>
   <button class="btn" id="walk" style="width:100%;margin-top:8px">Loop deze route</button>
-  <p class="sec">Rondrit vanaf mijn locatie</p>
-  <div class="row"><input id="rk" type="text" inputmode="decimal" value="5"><span class="u">km</span><button class="btn" id="rtb" style="flex:2">Rondrit maken</button></div>
+  <p class="sec" hidden>Rondrit vanaf mijn locatie</p>
+  <div class="row" hidden><input id="rk" type="text" inputmode="decimal" value="5"><span class="u">km</span><button class="btn" id="rtb" style="flex:2">Rondrit maken</button></div>
   <p class="sec">Opgeslagen routes</p>
-  <div class="row"><select id="sel"></select><button class="btn alt" id="del">Verwijder</button></div>
+  <div class="row"><select id="sel"></select><button class="btn alt" id="cp" hidden>Kopieer code</button><button class="btn alt" id="del">Verwijder</button></div>
   <p class="hint">Tik op de kaart om punten toe te voegen. Sleep een punt om het te verplaatsen, tik op een punt om het te verwijderen.</p>
 </div>
 
@@ -149,6 +149,9 @@ const empty={type:'FeatureCollection',features:[]};
 const line=c=>c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates:c}}:empty;
 
 let key=rd('ors')||'', saved=rd('routes')||[], runs=rd('runs2')||[];
+// Vaste routes voor iedereen: plak hier routecodes tussen de haken, gescheiden door komma's.
+const STARTROUTES=[];
+{const skip=rd('skip')||[];let add=false;for(const sr of STARTROUTES){if(!saved.some(r=>r.id===sr.id)&&!skip.includes(sr.id)){saved.push(sr);add=true}}if(add)wr('routes',saved)}
 let wps=[], mk=[], route=[], rlen=0, mode='plan', me=null, meMk=null, watching=false, ready=false;
 let warned=false, centered=false, rtActive=false, curSel='', dragged=false, calcId=0, rasc=0;
 let state='idle', acc=0, seg=0, dist=0, pts=[], gap=false, lock=null, startTs=0;
@@ -249,7 +252,7 @@ $('#rsel').onchange=e=>{
 };
 $('#del').onclick=()=>{
   const i=$('#sel').value;if(i===''||!confirm('Route verwijderen?'))return;
-  saved.splice(+i,1);wr('routes',saved);curSel=route.length?'cur':'';list();
+  {const d=saved.splice(+i,1)[0];if(d&&d.id){const sk=rd('skip')||[];sk.push(d.id);wr('skip',sk)}}wr('routes',saved);curSel=route.length?'cur':'';list();
 };
 
 function tab(m){
@@ -275,7 +278,8 @@ function onPos(p){
   if(!centered){centered=true;map.jumpTo({center:ll,zoom:15})}
   if(!meMk){const e=document.createElement('div');e.className='me';meMk=new maplibregl.Marker({element:e}).setLngLat(ll).addTo(map)}else meMk.setLngLat(ll);
   if(mode==='run'&&route.length){
-    let m=1e9;for(const c of route){const d=hav(c,ll);if(d<m)m=d}
+    let m=1e9;const k=111320,cx=Math.cos(ll[1]*Math.PI/180),q=[ll[0]*k*cx,ll[1]*k],X=c=>[c[0]*k*cx,c[1]*k];
+    for(let i=0;i<route.length;i++){const a=X(route[i]),b=i<route.length-1?X(route[i+1]):a,d=segD(q,a,b);if(d<m)m=d}
     const w=$('#warn');w.style.display=m>60?'block':'none';w.textContent='Je bent '+Math.round(m)+' m van de route';
   }
   if(state!=='run')return;
@@ -349,6 +353,21 @@ function splits(r){
   if(rest>=100&&D.length>1)out.push({l:(rest/1000).toFixed(2)+' km',s:(T[T.length-1]-pt)*1000/rest});
   return out;
 }
+const segD=(p,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy;let t=l?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy)};
+function simplify(c,tol){
+  if(c.length<3)return c;
+  const k=111320,cx=Math.cos(c[0][1]*Math.PI/180),P=c.map(p=>[p[0]*k*cx,p[1]*k]),keep=new Uint8Array(c.length),st=[[0,c.length-1]];
+  keep[0]=keep[c.length-1]=1;
+  while(st.length){const [a,b]=st.pop();let m=0,mi=-1;for(let i=a+1;i<b;i++){const d=segD(P[i],P[a],P[b]);if(d>m){m=d;mi=i}}if(m>tol&&mi>0){keep[mi]=1;st.push([a,mi],[mi,b])}}
+  return c.filter((_,i)=>keep[i]);
+}
+const r5=p=>[+p[0].toFixed(5),+p[1].toFixed(5)];
+$('#cp').onclick=async()=>{
+  const i=$('#sel').value;if(i==='')return toast('Kies eerst een opgeslagen route.');
+  const r=saved[+i],out={id:r.id||'r'+Date.now().toString(36),name:r.name,wps:(r.wps||[]).map(r5),route:simplify(r.route,3).map(r5),dist:Math.round(r.dist),asc:Math.round(r.asc||0),rt:!!r.rt},t=JSON.stringify(out);
+  try{await navigator.clipboard.writeText(t);toast('Routecode gekopieerd. Plak hem in de chat.')}catch(e){prompt('Kopieer deze routecode:',t)}
+};
+if(location.search.includes('maker'))$('#cp').hidden=false;
 let cur=-1;
 const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
 function showList(){
