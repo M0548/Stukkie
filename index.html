@@ -37,12 +37,13 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 .ri{display:flex;flex-direction:column;gap:2px;width:100%;padding:11px 2px;border:0;border-bottom:1px solid var(--line);background:#fff;font-size:15px;color:#000;text-align:left}
 .ri b{font-size:16px;font-weight:800}
 #rl{max-height:36vh;overflow:auto}
+.toast{display:none;position:absolute;left:10px;right:10px;top:10px;background:var(--blue);color:#fff;font-weight:700;padding:10px 12px;border-radius:12px;text-align:center;z-index:3}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
 <header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg">Sleutel</button></header>
 <nav><button id="t1" class="on">Plannen</button><button id="t2">Lopen</button><button id="t3">Historie</button></nav>
-<div id="mw"><div id="map"></div><div id="warn"></div><button id="loc" class="loc">Mijn locatie</button></div>
+<div id="mw"><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
 <div class="panel" id="p1">
   <div class="stat big"><span>Lengte van de route</span><b id="pd">0.00 km</b></div>
@@ -207,25 +208,36 @@ $('#go').onclick=()=>{
 $('#stop').onclick=()=>{
   if(!confirm('Run stoppen?'))return;
   if(state==='run')acc+=Date.now()-seg;
-  state='idle';render();
-  if(dist>50&&pts.length){runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000)])});if(!wr('runs2',runs))alert('Opslaan mislukt: de opslag van Safari is vol. Exporteer en verwijder oude runs.');hist()}
+  state='idle';
+  let msg='';
+  if(!pts.length)msg='Geen gps-punten ontvangen: de run is niet opgeslagen.';
+  else if(dist<50&&!confirm('Deze run is korter dan 50 m. Toch opslaan?'))msg='Run niet opgeslagen.';
+  else{
+    runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000)])});
+    if(wr('runs2',runs))msg='Run opgeslagen onder Historie.';
+    else{runs.shift();alert('Opslaan mislukt: de opslag van Safari is vol. Exporteer en verwijder oude runs.')}
+  }
+  acc=0;dist=0;pts=[];gap=false;
+  if(ready)map.getSource('trail').setData(empty);
+  render();hist();toast(msg);
   $('#go').textContent='Start';$('#stop').hidden=true;
   if(lock){lock.release();lock=null}
 };
+function toast(t){if(!t)return;const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
 function hist(){const r=runs[0];$('#hist').textContent=r?'Laatste run: '+(r.dist/1000).toFixed(2)+' km in '+tm(r.ms)+'. Alle runs staan onder Historie.':'Je runs komen onder Historie te staan.'}
 let cur=-1;
 const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
 function showList(){
   cur=-1;$('#det').hidden=true;$('#rl').hidden=false;
   if(state==='idle'&&ready)map.getSource('trail').setData(empty);
-  $('#rl').innerHTML=runs.map((r,i)=>`<button class="ri" data-i="${i}"><b>${fmt(r)}</b><span>${(r.dist/1000).toFixed(2)} km, ${tm(r.ms)}, ${pace(r.dist/(r.ms/1000))} min/km</span></button>`).join('');
+  $('#rl').innerHTML=runs.map((r,i)=>`<button class="ri" data-i="${i}"><b>${fmt(r)}</b><span>${(r.dist/1000).toFixed(2)} km, ${tm(r.ms)}, ${pace((r.ms>0?r.dist/(r.ms/1000):0))} min/km</span></button>`).join('');
   $('#rhint').textContent=runs.length?'':'Nog geen runs. Je eerste run verschijnt hier nadat je op Stop tikt.';
 }
 $('#rl').onclick=e=>{const b=e.target.closest('.ri');if(b)openRun(+b.dataset.i)};
 function openRun(i){
   const r=runs[i];if(!r)return;cur=i;
   $('#rl').hidden=true;$('#det').hidden=false;$('#rhint').textContent='';
-  $('#h-n').textContent=fmt(r);$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace(r.dist/(r.ms/1000));
+  $('#h-n').textContent=fmt(r);$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace((r.ms>0?r.dist/(r.ms/1000):0));
   const c=r.pts.map(p=>[p[0],p[1]]);
   if(ready)map.getSource('trail').setData(line(c));
   const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17});
