@@ -44,12 +44,26 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 #home h2{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:18px 0 10px}
 #home p{font-size:17px;line-height:1.45;max-width:34em}
 #home .note{margin-top:12px;font-weight:700}
+#home .hint{margin-top:24px;font-size:15px}
 #home .btn{display:block;width:100%;flex:none;margin-top:12px}
-#home .btn:first-of-type{margin-top:24px}
 #bar{display:flex;border-top:1px solid var(--line);background:#fff;padding-bottom:env(safe-area-inset-bottom)}
 #bar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;border:0;background:none;font-size:11px;font-weight:700;color:#5c7280;box-shadow:inset 0 3px 0 transparent}
 #bar button.on{color:var(--deep);box-shadow:inset 0 3px 0 var(--blue)}
 #bar svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#p1{max-height:46vh;overflow:auto}
+#p3{max-height:50vh;overflow:auto}
+.stats2{display:flex;gap:28px}
+.sec{font-weight:800;font-size:15px;margin-top:14px}
+#rk,#ki{flex:1;min-width:0;padding:12px;border-radius:12px;border:1px solid var(--line);font-size:16px;color:#000}
+#ki{width:100%;margin-top:10px}
+.u{align-self:center;font-weight:700}
+.sp{display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid var(--line);font-size:16px}
+.sp b{font-weight:800}
+.card{margin-top:24px;padding:14px;border-radius:14px;background:var(--tint)}
+#kd{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.dlg{background:#fff;border-radius:16px;padding:18px;max-width:420px;width:100%}
+.dlg h3{font-size:20px;margin-bottom:8px}
+.dlg ol{margin:10px 0 0 20px;line-height:1.45}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
@@ -59,20 +73,23 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   <h2>Welkom bij de Stukkie app</h2>
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
-  <button class="btn" data-go="plan">Route plannen</button>
-  <button class="btn alt" data-go="run">Naar lopen</button>
-  <p class="hint">Voor het plannen van routes heb je een gratis OpenRouteService-sleutel nodig. Tik rechtsboven op Sleutel om hem in te vullen.</p>
+  <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
 </div>
-<div id="mw"><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
+<div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
-<div class="panel" id="p1">
-  <div class="stat big"><span>Lengte van de route</span><b id="pd">0.00 km</b></div>
+<div class="panel" id="p1" hidden>
+  <div class="stats2"><div class="stat big"><span>Lengte</span><b id="pd">0.00 km</b></div><div class="stat big"><span>Stijging</span><b id="pa">–</b></div></div>
+  <div class="row"><button class="btn alt" id="undo">Ongedaan</button><button class="btn alt" id="clr">Wissen</button><button class="btn alt" id="sv">Opslaan</button></div>
+  <button class="btn" id="walk" style="width:100%;margin-top:8px">Loop deze route</button>
+  <p class="sec">Rondrit vanaf mijn locatie</p>
+  <div class="row"><input id="rk" type="text" inputmode="decimal" value="5"><span class="u">km</span><button class="btn" id="rtb" style="flex:2">Rondrit maken</button></div>
+  <p class="sec">Opgeslagen routes</p>
   <div class="row"><select id="sel"></select><button class="btn alt" id="del">Verwijder</button></div>
-  <div class="row"><button class="btn alt" id="undo">Ongedaan</button><button class="btn alt" id="clr">Wissen</button><button class="btn" id="sv">Opslaan</button></div>
-  <p class="hint">Tik op de kaart om punten toe te voegen. De route volgt wandelpaden.</p>
+  <p class="hint">Tik op de kaart om punten toe te voegen. Sleep een punt om het te verplaatsen, tik op een punt om het te verwijderen.</p>
 </div>
 
 <div class="panel" id="p2" hidden>
+  <select id="rsel" style="width:100%;margin-bottom:10px"></select>
   <div class="stats">
     <div class="stat"><span>Tijd</span><b id="s-t">00:00</b></div>
     <div class="stat"><span>Afstand (km)</span><b id="s-d">0.00</b></div>
@@ -92,20 +109,31 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
       <div class="stat"><span>Tijd</span><b id="h-t">00:00</b></div>
       <div class="stat"><span>Afstand (km)</span><b id="h-d">0.00</b></div>
       <div class="stat"><span>Gem. tempo (min/km)</span><b id="h-a">–</b></div>
+      <div class="stat"><span>Snelheid (km/h)</span><b id="h-v">0.0</b></div>
+      <div class="stat"><span>Stijging (ca. m)</span><b id="h-e">–</b></div>
     </div>
     <div class="row"><button class="btn" id="gpx">Exporteer GPX</button><button class="btn alt" id="rdel">Verwijder</button></div>
     <div class="row"><button class="btn alt" id="back">Terug naar de lijst</button></div>
+    <div id="h-s"></div>
   </div>
   <div id="rl"></div>
   <p class="hint" id="rhint"></p>
 </div>
 
 <div id="bar">
-  <button id="b-home" data-t="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home</button>
+  <button id="b-home" data-t="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home</button>
   <button id="b-plan" data-t="plan"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Plannen</button>
   <button id="b-run" data-t="run"><svg viewBox="0 0 24 24"><circle cx="15.5" cy="4.5" r="1.6"/><path d="M13.5 8.5L11 13"/><path d="M13.4 8.8l3.3 1.7 2.3-1.2M12.6 9.4l-3 .6-1.6 2.6"/><path d="M11 13l3.5 2-1 5"/><path d="M11 13l-3 3.5-3.5 1.5"/></svg>Lopen</button>
   <button id="b-hist" data-t="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Historie</button>
 </div>
+
+<div id="kd" hidden><div class="dlg">
+  <h3>Sleutel voor routes</h3>
+  <p>Stukkie gebruikt OpenRouteService om routes te berekenen. Daarvoor heb je eenmalig een gratis sleutel nodig:</p>
+  <ol><li>Ga naar openrouteservice.org en maak een gratis account.</li><li>Vraag in je dashboard een nieuw token aan (type Free) en kopieer het.</li><li>Plak het hieronder en tik op Opslaan.</li></ol>
+  <input id="ki" placeholder="Plak hier je sleutel" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <div class="row"><button class="btn alt" id="kx">Later</button><button class="btn" id="ks">Opslaan</button></div>
+</div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
 <script>
@@ -121,7 +149,7 @@ const line=c=>c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates
 
 let key=rd('ors')||'', saved=rd('routes')||[], runs=rd('runs2')||[];
 let wps=[], mk=[], route=[], rlen=0, mode='plan', me=null, meMk=null, watching=false, ready=false;
-let warned=false, centered=false;
+let warned=false, centered=false, rtActive=false, curSel='', dragged=false, calcId=0, rasc=0;
 let state='idle', acc=0, seg=0, dist=0, pts=[], gap=false, lock=null, startTs=0;
 
 const map=new maplibregl.Map({container:'map',center:rd('last')||[5.3,52.2],zoom:rd('last')?14:7,
@@ -135,52 +163,96 @@ map.on('load',()=>{
   ready=true;
 });
 
-function setRoute(c,d){
-  route=c;rlen=d;
+function setRoute(c,d,a){
+  route=c;rlen=d;rasc=a||0;
   if(ready)map.getSource('route').setData(line(c));
-  $('#pd').textContent=(d/1000).toFixed(2)+' km';$('#s-r').textContent=(d/1000).toFixed(2);
+  $('#pd').textContent=(d/1000).toFixed(2)+' km';$('#pa').textContent=c.length&&a!=null?Math.round(a)+' m':'–';$('#s-r').textContent=(d/1000).toFixed(2);
 }
+function fitRoute(){if(route.length<2)return;const b=new maplibregl.LngLatBounds();route.forEach(p=>b.extend([p[0],p[1]]));map.fitBounds(b,{padding:50,maxZoom:17})}
 function pins(){
   mk.forEach(m=>m.remove());
-  mk=wps.map((p,i)=>{const e=document.createElement('div');e.className='pin';e.textContent=i+1;return new maplibregl.Marker({element:e}).setLngLat(p).addTo(map)});
+  mk=wps.map((p,i)=>{
+    const e=document.createElement('div');e.className='pin';e.textContent=i+1;
+    const m=new maplibregl.Marker({element:e,draggable:mode==='plan'}).setLngLat(p).addTo(map);
+    m.on('dragstart',()=>{dragged=true});
+    m.on('dragend',()=>{const l=m.getLngLat();wps[i]=[l.lng,l.lat];setTimeout(()=>{dragged=false},300);calc()});
+    e.addEventListener('click',ev=>{ev.stopPropagation();if(dragged||mode!=='plan')return;if(confirm('Punt '+(i+1)+' verwijderen?')){wps.splice(i,1);pins();calc()}});
+    return m;
+  });
 }
-function askKey(){const k=prompt('Plak je OpenRouteService API-sleutel:',key);if(k){key=k.trim();wr('ors',key)}}
+function openKey(){$('#ki').value=key;$('#kd').hidden=false}
+function keyUI(){$('#keycard').hidden=!!key}
+$('#kx').onclick=()=>{$('#kd').hidden=true};
+$('#ks').onclick=()=>{const k=$('#ki').value.trim();$('#kd').hidden=true;if(!k)return;key=k;wr('ors',key);keyUI();if(wps.length>1)calc()};
+$('#cfg').onclick=openKey;$('#kopen').onclick=openKey;
+async function ors(body){
+  const r=await fetch('https://api.openrouteservice.org/v2/directions/foot-walking/geojson',{method:'POST',headers:{Authorization:key,'Content-Type':'application/json'},body:JSON.stringify(Object.assign({elevation:true},body))});
+  const j=await r.json();
+  if(!r.ok)throw new Error((j.error&&(j.error.message||j.error))||r.status);
+  return j.features[0];
+}
 async function calc(){
   if(wps.length<2){setRoute([],0);return}
-  if(!key){askKey();if(!key)return}
-  $('#pd').textContent='Berekenen…';
+  if(!key){openKey();return}
+  const id=++calcId;$('#pd').textContent='Berekenen…';
   try{
-    const r=await fetch('https://api.openrouteservice.org/v2/directions/foot-walking/geojson',{method:'POST',headers:{Authorization:key,'Content-Type':'application/json'},body:JSON.stringify({coordinates:wps})});
-    const j=await r.json();
-    if(!r.ok)throw new Error((j.error&&(j.error.message||j.error))||r.status);
-    const f=j.features[0];setRoute(f.geometry.coordinates,f.properties.summary.distance);
-  }catch(e){alert('Route berekenen mislukt: '+e.message);setRoute(route,rlen)}
+    const f=await ors({coordinates:wps});if(id!==calcId)return;
+    setRoute(f.geometry.coordinates,f.properties.summary.distance,f.properties.ascent);curSel='cur';refreshR();
+  }catch(e){if(id!==calcId)return;alert('Route berekenen mislukt: '+e.message);setRoute(route,rlen,rasc)}
 }
-map.on('click',e=>{if(mode!=='plan')return;wps.push([e.lngLat.lng,e.lngLat.lat]);pins();calc()});
-$('#undo').onclick=()=>{wps.pop();pins();calc()};
-$('#clr').onclick=()=>{wps=[];pins();setRoute([],0)};
-$('#cfg').onclick=askKey;
+map.on('click',e=>{
+  if(mode!=='plan')return;
+  if(e.originalEvent.target.closest&&e.originalEvent.target.closest('.pin'))return;
+  if(rtActive){toast('Tik op Wissen om een nieuwe route te maken.');return}
+  wps.push([e.lngLat.lng,e.lngLat.lat]);pins();calc();
+});
+$('#undo').onclick=()=>{if(rtActive)return toast('Een rondrit kun je niet aanpassen. Tik op Wissen.');wps.pop();pins();calc()};
+$('#clr').onclick=()=>{wps=[];rtActive=false;calcId++;pins();setRoute([],0);curSel='';refreshR()};
+$('#rtb').onclick=async()=>{
+  if(!key){openKey();return}
+  const km=parseFloat($('#rk').value.replace(',','.'));
+  if(!(km>=1&&km<=50))return toast('Kies een lengte tussen 1 en 50 km.');
+  let st=me;if(!st){const c=map.getCenter();st=[c.lng,c.lat];toast('Locatie onbekend: de rondrit start in het midden van de kaart.')}
+  const id=++calcId;$('#pd').textContent='Berekenen…';
+  try{
+    const f=await ors({coordinates:[st],options:{round_trip:{length:Math.round(km*1000),points:3,seed:Math.floor(Math.random()*90)+1}}});if(id!==calcId)return;
+    wps=[];rtActive=true;pins();setRoute(f.geometry.coordinates,f.properties.summary.distance,f.properties.ascent);curSel='cur';refreshR();fitRoute();
+    toast('Rondrit klaar. Tik opnieuw op Rondrit maken voor een ander voorstel.');
+  }catch(e){if(id!==calcId)return;alert('Rondrit maken mislukt: '+e.message);setRoute(route,rlen,rasc)}
+};
+$('#walk').onclick=()=>{if(route.length<2)return toast('Plan eerst een route.');tab('run');setTimeout(fitRoute,150)};
 
+const esc=t=>String(t).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
+function opts(){return saved.map((r,i)=>`<option value="${i}">${esc(r.name)} (${(r.dist/1000).toFixed(1)} km)</option>`).join('')}
 function list(){
-  $('#sel').innerHTML='<option value="">'+(saved.length?'Opgeslagen routes':'Nog geen opgeslagen routes')+'</option>'+saved.map((r,i)=>`<option value="${i}">${r.name} (${(r.dist/1000).toFixed(1)} km)</option>`).join('');
+  $('#sel').innerHTML='<option value="">'+(saved.length?'Kies een opgeslagen route':'Nog geen opgeslagen routes')+'</option>'+opts();
+  refreshR();
+}
+function refreshR(){
+  $('#rsel').innerHTML='<option value="">Vrij lopen (zonder route)</option>'+(curSel==='cur'&&route.length?`<option value="cur">Zojuist gepland (${(rlen/1000).toFixed(1)} km)</option>`:'')+opts();
+  $('#rsel').value=curSel;$('#sel').value=/^[0-9]+$/.test(curSel)?curSel:'';
+}
+function loadSaved(i){
+  const r=saved[i];if(!r)return;
+  calcId++;wps=(r.wps||[]).slice();rtActive=!!r.rt;pins();setRoute(r.route,r.dist,r.asc);curSel=String(i);refreshR();fitRoute();
 }
 $('#sv').onclick=()=>{
   if(route.length<2)return alert('Plan eerst een route.');
   const name=prompt('Naam van de route?');if(!name)return;
-  saved.push({name,wps,route,dist:rlen});wr('routes',saved);list();
+  saved.push({name,wps:wps.slice(),route:route.slice(),dist:rlen,asc:rasc,rt:rtActive});wr('routes',saved);curSel=String(saved.length-1);list();
 };
-$('#sel').onchange=e=>{
-  const r=saved[e.target.value];if(!r)return;
-  wps=r.wps;pins();setRoute(r.route,r.dist);
-  const b=new maplibregl.LngLatBounds();r.route.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50});
+$('#sel').onchange=e=>{if(e.target.value!=='')loadSaved(+e.target.value)};
+$('#rsel').onchange=e=>{
+  const v=e.target.value;if(v==='cur')return;
+  if(v===''){calcId++;wps=[];rtActive=false;pins();setRoute([],0);curSel='';refreshR()}else loadSaved(+v);
 };
 $('#del').onclick=()=>{
   const i=$('#sel').value;if(i===''||!confirm('Route verwijderen?'))return;
-  saved.splice(i,1);wr('routes',saved);list();
+  saved.splice(+i,1);wr('routes',saved);curSel=route.length?'cur':'';list();
 };
 
 function tab(m){
-  mode=m;
+  mode=m;mk.forEach(x=>x.setDraggable(m==='plan'));
   ['home','plan','run','hist'].forEach(k=>$('#b-'+k).classList.toggle('on',k===m));
   $('#home').hidden=m!=='home';$('#mw').hidden=m==='home';
   $('#p1').hidden=m!=='plan';$('#p2').hidden=m!=='run';$('#p3').hidden=m!=='hist';
@@ -210,13 +282,14 @@ function onPos(p){
   if(p.coords.accuracy>30)return;
   const l=pts[pts.length-1];let cd=l?l.cd:0;
   if(l){const d=hav(l.ll,ll);if(d<3)return;if(!gap)cd+=d}
-  gap=false;dist=cd;pts.push({ll,t:p.timestamp,cd});
+  gap=false;dist=cd;pts.push({ll,t:p.timestamp,cd,mv:Math.round((acc+Date.now()-seg)/1000),alt:p.coords.altitude});
   if(ready)map.getSource('trail').setData(line(pts.map(q=>q.ll)));
 }
 async function wake(){try{lock=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state==='run')wake()});
 
 function render(){
+  $('#rsel').disabled=state!=='idle';
   const ms=acc+(state==='run'?Date.now()-seg:0),v=ms>0?dist/(ms/1000):0;
   let cur=0;const n=pts.length;
   if(n>1){const l=pts[n-1];let o=pts[0];for(const q of pts){if(l.t-q.t<=20000){o=q;break}}if(l.t>o.t)cur=(l.cd-o.cd)/((l.t-o.t)/1000)}
@@ -243,7 +316,7 @@ $('#stop').onclick=()=>{
   if(!pts.length)msg='Geen gps-punten ontvangen: de run is niet opgeslagen.';
   else if(dist<50&&!confirm('Deze run is korter dan 50 m. Toch opslaan?'))msg='Run niet opgeslagen.';
   else{
-    runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000)])});
+    runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000),Math.round(q.cd),q.mv,q.alt==null?null:Math.round(q.alt)])});
     if(wr('runs2',runs))msg='Run opgeslagen onder Historie.';
     else{runs.shift();alert('Opslaan mislukt: de opslag van Safari is vol. Exporteer en verwijder oude runs.')}
   }
@@ -255,6 +328,26 @@ $('#stop').onclick=()=>{
 };
 function toast(t){if(!t)return;const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
 function hist(){const r=runs[0];$('#hist').textContent=r?'Laatste run: '+(r.dist/1000).toFixed(2)+' km in '+tm(r.ms)+'. Alle runs staan onder Historie.':'Je runs komen onder Historie te staan.'}
+const ps=s=>{const t=Math.round(s);return Math.floor(t/60)+':'+f2(t%60)};
+function ascent(r){
+  const a=r.pts.map(p=>p[5]).filter(v=>v!=null);if(a.length<5)return null;
+  const s=a.map((_,i)=>{const w=a.slice(Math.max(0,i-4),i+5);return w.reduce((x,y)=>x+y,0)/w.length});
+  let up=0,ref=s[0];for(const v of s){if(v-ref>=3){up+=v-ref;ref=v}else if(ref-v>=3)ref=v}
+  return Math.round(up);
+}
+function splits(r){
+  const P=r.pts,D=[],T=[];let c=0;
+  P.forEach((p,i)=>{if(p[3]!=null)c=p[3];else if(i)c+=hav(P[i-1],p);D.push(c);T.push(p[4]!=null?p[4]:p[2]-P[0][2])});
+  const out=[],tot=D[D.length-1]||0;let pt=0,j=1;
+  for(let k=1000;k<=tot;k+=1000){
+    while(j<D.length-1&&D[j]<k)j++;
+    const d=D[j]-D[j-1],t=d>0?T[j-1]+(T[j]-T[j-1])*(k-D[j-1])/d:T[j];
+    out.push({l:(k/1000)+' km',s:t-pt});pt=t;
+  }
+  const rest=tot%1000;
+  if(rest>=100&&D.length>1)out.push({l:(rest/1000).toFixed(2)+' km',s:(T[T.length-1]-pt)*1000/rest});
+  return out;
+}
 let cur=-1;
 const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
 function showList(){
@@ -268,6 +361,9 @@ function openRun(i){
   const r=runs[i];if(!r)return;cur=i;
   $('#rl').hidden=true;$('#det').hidden=false;$('#rhint').textContent='';
   $('#h-n').textContent=fmt(r);$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace((r.ms>0?r.dist/(r.ms/1000):0));
+  const v=r.ms>0?r.dist/(r.ms/1000):0;$('#h-v').textContent=(v*3.6).toFixed(1);
+  const a=ascent(r);$('#h-e').textContent=a==null?'–':a;
+  const sp=splits(r);$('#h-s').innerHTML=sp.length?'<p class="sec">Tempo per kilometer (min/km)</p>'+sp.map(x=>`<div class="sp"><span>${x.l}</span><b>${ps(x.s)}</b></div>`).join(''):'';
   const c=r.pts.map(p=>[p[0],p[1]]);
   if(ready)map.getSource('trail').setData(line(c));
   const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17});
@@ -275,7 +371,7 @@ function openRun(i){
 $('#back').onclick=showList;
 $('#rdel').onclick=()=>{if(cur<0||!confirm('Deze run verwijderen? Dit kan niet ongedaan worden gemaakt.'))return;runs.splice(cur,1);wr('runs2',runs);hist();showList()};
 function gpx(r){
-  const t=r.pts.map(p=>`<trkpt lat="${p[1]}" lon="${p[0]}"><time>${new Date(p[2]*1000).toISOString()}</time></trkpt>`).join('');
+  const t=r.pts.map(p=>`<trkpt lat="${p[1]}" lon="${p[0]}">${p[5]!=null?`<ele>${p[5]}</ele>`:''}<time>${new Date(p[2]*1000).toISOString()}</time></trkpt>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Stukkie" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Run ${fmt(r)}</name><type>running</type><trkseg>${t}</trkseg></trk></gpx>`;
 }
 $('#gpx').onclick=async()=>{
@@ -284,6 +380,7 @@ $('#gpx').onclick=async()=>{
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
   const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove();
 };
-list();hist();watch();tab('home');
+list();hist();watch();keyUI();tab('home');
+if(!key&&!rd('intro')){wr('intro',1);openKey()}
 $('#loc').onclick=()=>{if(me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)});else{warned=false;alert('Nog geen locatie gevonden. Controleer of locatietoegang aan staat.')}};
 </script></body></html>
