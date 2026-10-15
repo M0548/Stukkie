@@ -34,11 +34,14 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
 .big b{font-size:34px}
 .hint{font-size:13px;color:#5c7280;margin-top:10px}
 .loc{position:absolute;right:10px;bottom:10px;z-index:2;background:#fff;color:#000;border:1px solid var(--line);border-radius:22px;padding:10px 14px;font-size:15px;font-weight:700;box-shadow:0 1px 5px #0003}
+.ri{display:flex;flex-direction:column;gap:2px;width:100%;padding:11px 2px;border:0;border-bottom:1px solid var(--line);background:#fff;font-size:15px;color:#000;text-align:left}
+.ri b{font-size:16px;font-weight:800}
+#rl{max-height:36vh;overflow:auto}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
 <header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg">Sleutel</button></header>
-<nav><button id="t1" class="on">Plannen</button><button id="t2">Lopen</button></nav>
+<nav><button id="t1" class="on">Plannen</button><button id="t2">Lopen</button><button id="t3">Historie</button></nav>
 <div id="mw"><div id="map"></div><div id="warn"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
 <div class="panel" id="p1">
@@ -61,11 +64,26 @@ select{flex:2;padding:12px;border-radius:12px;border:1px solid var(--line);font-
   <p class="hint" id="hist"></p>
 </div>
 
+<div class="panel" id="p3" hidden>
+  <div id="det" hidden>
+    <p id="h-n" style="font-weight:800;font-size:17px;margin-bottom:8px"></p>
+    <div class="stats">
+      <div class="stat"><span>Tijd</span><b id="h-t">00:00</b></div>
+      <div class="stat"><span>Afstand (km)</span><b id="h-d">0.00</b></div>
+      <div class="stat"><span>Gem. tempo (min/km)</span><b id="h-a">–</b></div>
+    </div>
+    <div class="row"><button class="btn" id="gpx">Exporteer GPX</button><button class="btn alt" id="rdel">Verwijder</button></div>
+    <div class="row"><button class="btn alt" id="back">Terug naar de lijst</button></div>
+  </div>
+  <div id="rl"></div>
+  <p class="hint" id="rhint"></p>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
-const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const f2=n=>String(n).padStart(2,'0');
 const tm=ms=>{const s=Math.floor(ms/1000),h=Math.floor(s/3600);return (h?h+':':'')+f2(Math.floor(s%3600/60))+':'+f2(s%60)};
 const pace=v=>{if(!(v>0.3))return '–';const t=Math.round(1000/v);return Math.floor(t/60)+':'+f2(t%60)};
@@ -73,10 +91,10 @@ const hav=(a,b)=>{const r=Math.PI/180,x=Math.sin((b[1]-a[1])*r/2)**2+Math.cos(a[
 const empty={type:'FeatureCollection',features:[]};
 const line=c=>c.length>1?{type:'Feature',geometry:{type:'LineString',coordinates:c}}:empty;
 
-let key=rd('ors')||'', saved=rd('routes')||[], runs=rd('runs')||[];
+let key=rd('ors')||'', saved=rd('routes')||[], runs=rd('runs2')||[];
 let wps=[], mk=[], route=[], rlen=0, mode='plan', me=null, meMk=null, watching=false, ready=false;
 let warned=false, centered=false;
-let state='idle', acc=0, seg=0, dist=0, pts=[], gap=false, lock=null;
+let state='idle', acc=0, seg=0, dist=0, pts=[], gap=false, lock=null, startTs=0;
 
 const map=new maplibregl.Map({container:'map',center:rd('last')||[5.3,52.2],zoom:rd('last')?14:7,
   style:{version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap'}},layers:[{id:'osm',type:'raster',source:'osm'}]}});
@@ -134,13 +152,15 @@ $('#del').onclick=()=>{
 };
 
 function tab(m){
-  mode=m;$('#t1').classList.toggle('on',m==='plan');$('#t2').classList.toggle('on',m==='run');
-  $('#p1').hidden=m!=='plan';$('#p2').hidden=m!=='run';
+  mode=m;
+  ['plan','run','hist'].forEach((k,i)=>{$('#t'+(i+1)).classList.toggle('on',k===m);$('#p'+(i+1)).hidden=k!==m});
   if(m!=='run')$('#warn').style.display='none';
+  if(m!=='hist'&&state==='idle'&&ready)map.getSource('trail').setData(empty);
   setTimeout(()=>map.resize(),50);
   if(m==='run')watch();
+  if(m==='hist')showList();
 }
-$('#t1').onclick=()=>tab('plan');$('#t2').onclick=()=>tab('run');
+$('#t1').onclick=()=>tab('plan');$('#t2').onclick=()=>tab('run');$('#t3').onclick=()=>tab('hist');
 
 function watch(){
   if(watching)return;watching=true;
@@ -177,7 +197,7 @@ setInterval(render,1000);
 
 $('#go').onclick=()=>{
   if(state==='idle'){
-    acc=0;dist=0;pts=[];gap=false;seg=Date.now();state='run';
+    acc=0;dist=0;pts=[];gap=false;seg=startTs=Date.now();state='run';
     if(ready)map.getSource('trail').setData(empty);
     wake();$('#go').textContent='Pauze';$('#stop').hidden=false;
   }else if(state==='run'){acc+=Date.now()-seg;state='pause';$('#go').textContent='Hervat'}
@@ -188,11 +208,40 @@ $('#stop').onclick=()=>{
   if(!confirm('Run stoppen?'))return;
   if(state==='run')acc+=Date.now()-seg;
   state='idle';render();
-  if(dist>50){runs.unshift({d:new Date().toLocaleDateString('nl-NL'),km:(dist/1000).toFixed(2),t:tm(acc)});runs=runs.slice(0,20);wr('runs',runs);hist()}
+  if(dist>50&&pts.length){runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000)])});if(!wr('runs2',runs))alert('Opslaan mislukt: de opslag van Safari is vol. Exporteer en verwijder oude runs.');hist()}
   $('#go').textContent='Start';$('#stop').hidden=true;
   if(lock){lock.release();lock=null}
 };
-function hist(){$('#hist').innerHTML=runs.slice(0,3).map(r=>`${r.d}: ${r.km} km in ${r.t}`).join('<br>')}
+function hist(){const r=runs[0];$('#hist').textContent=r?'Laatste run: '+(r.dist/1000).toFixed(2)+' km in '+tm(r.ms)+'. Alle runs staan onder Historie.':'Je runs komen onder Historie te staan.'}
+let cur=-1;
+const fmt=r=>{const d=new Date(r.s);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})};
+function showList(){
+  cur=-1;$('#det').hidden=true;$('#rl').hidden=false;
+  if(state==='idle'&&ready)map.getSource('trail').setData(empty);
+  $('#rl').innerHTML=runs.map((r,i)=>`<button class="ri" data-i="${i}"><b>${fmt(r)}</b><span>${(r.dist/1000).toFixed(2)} km, ${tm(r.ms)}, ${pace(r.dist/(r.ms/1000))} min/km</span></button>`).join('');
+  $('#rhint').textContent=runs.length?'':'Nog geen runs. Je eerste run verschijnt hier nadat je op Stop tikt.';
+}
+$('#rl').onclick=e=>{const b=e.target.closest('.ri');if(b)openRun(+b.dataset.i)};
+function openRun(i){
+  const r=runs[i];if(!r)return;cur=i;
+  $('#rl').hidden=true;$('#det').hidden=false;$('#rhint').textContent='';
+  $('#h-n').textContent=fmt(r);$('#h-t').textContent=tm(r.ms);$('#h-d').textContent=(r.dist/1000).toFixed(2);$('#h-a').textContent=pace(r.dist/(r.ms/1000));
+  const c=r.pts.map(p=>[p[0],p[1]]);
+  if(ready)map.getSource('trail').setData(line(c));
+  const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17});
+}
+$('#back').onclick=showList;
+$('#rdel').onclick=()=>{if(cur<0||!confirm('Deze run verwijderen? Dit kan niet ongedaan worden gemaakt.'))return;runs.splice(cur,1);wr('runs2',runs);hist();showList()};
+function gpx(r){
+  const t=r.pts.map(p=>`<trkpt lat="${p[1]}" lon="${p[0]}"><time>${new Date(p[2]*1000).toISOString()}</time></trkpt>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Stukkie" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Run ${fmt(r)}</name><type>running</type><trkseg>${t}</trkseg></trk></gpx>`;
+}
+$('#gpx').onclick=async()=>{
+  const r=runs[cur];if(!r)return;
+  const name='stukkie-'+new Date(r.s).toISOString().slice(0,10)+'.gpx',f=new File([gpx(r)],name,{type:'application/gpx+xml'});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove();
+};
 list();hist();watch();
 $('#loc').onclick=()=>{if(me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)});else{warned=false;alert('Nog geen locatie gevonden. Controleer of locatietoegang aan staat.')}};
 </script></body></html>
