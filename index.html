@@ -89,6 +89,17 @@ body.running #p2,body.running #bar{display:none}
 #rs.mini .g .stat:nth-child(2),#rs.mini .g .stat:nth-child(4){display:none}
 #rs.mini .g .stat:last-child{grid-column:auto}
 #rs.mini .btn{padding:14px 8px;font-size:18px}
+#lk{position:fixed;inset:0;z-index:8;background:#000;color:#fff;display:flex;flex-direction:column;text-align:center;padding:calc(14px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));touch-action:none;-webkit-user-select:none;user-select:none}
+#lk .stat span{color:#9aa7b1;font-size:14px}
+#lk .stat b{color:#fff}
+#lk .tijd b{font-size:76px;line-height:1.05}
+#lk .g{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:18px 10px;align-content:center}
+#lk .g .stat b{font-size:42px}
+#lk .g .stat:last-child{grid-column:1/3}
+#slt{position:relative;height:64px;border-radius:32px;background:#1c1c1e;border:1px solid #3a3a3c}
+#slk{position:absolute;left:0;top:0;width:62px;height:62px;border-radius:31px;background:var(--blue);touch-action:none;display:flex;align-items:center;justify-content:center}
+#slk svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#slx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa7b1;font-weight:700;font-size:17px;pointer-events:none;padding-left:56px}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
 </style></head><body>
@@ -99,7 +110,7 @@ body.running #p2,body.running #bar{display:none}
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.11</p>
+  <p class="hint">Versie 0.12</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -156,6 +167,7 @@ body.running #p2,body.running #bar{display:none}
 
 <div id="rs" hidden>
   <button id="okaart" class="mapbtn">Kaart</button>
+  <button id="olock" class="mapbtn" style="right:auto;left:14px">Vergrendel</button>
   <div id="owarn" style="display:none;background:#000;color:#fff;font-weight:700;padding:10px;border-radius:12px"></div>
   <div class="stat tijd"><span>Tijd</span><b id="o-t">00:00</b></div>
   <div class="g">
@@ -166,6 +178,18 @@ body.running #p2,body.running #bar{display:none}
     <div class="stat"><span>Snelheid (km/h)</span><b id="o-v">0.0</b></div>
   </div>
   <div class="row"><button class="btn" id="ogo">Pauze</button><button class="btn alt" id="ostop">Stop</button></div>
+</div>
+<div id="lk" hidden>
+  <div id="lwarn" style="display:none;background:#fff;color:#000;font-weight:700;padding:10px;border-radius:12px"></div>
+  <div class="stat tijd"><span>Tijd</span><b id="l-t">00:00</b></div>
+  <div class="g">
+    <div class="stat"><span>Afstand (km)</span><b id="l-d">0.00</b></div>
+    <div class="stat"><span>Route (km)</span><b id="l-r">–</b></div>
+    <div class="stat"><span>Tempo (min/km)</span><b id="l-p">–</b></div>
+    <div class="stat"><span>Gem. tempo (min/km)</span><b id="l-a">–</b></div>
+    <div class="stat"><span>Snelheid (km/h)</span><b id="l-v">0.0</b></div>
+  </div>
+  <div id="slt"><span id="slx">Schuif om te ontgrendelen</span><div id="slk"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div></div>
 </div>
 <div id="sd" hidden><div class="dlg">
   <h3>Instellingen</h3>
@@ -216,7 +240,7 @@ map.on('load',()=>{
 function setRoute(c,d,a){
   route=c;rlen=d;rasc=a||0;
   if(ready)map.getSource('route').setData(line(c));
-  $('#pd').textContent=(d/1000).toFixed(2)+' km';$('#pa').textContent=c.length&&a!=null?Math.round(a)+' m':'–';$('#s-r').textContent=(d/1000).toFixed(2);$('#o-r').textContent=d>0?(d/1000).toFixed(2):'–';
+  $('#pd').textContent=(d/1000).toFixed(2)+' km';$('#pa').textContent=c.length&&a!=null?Math.round(a)+' m':'–';$('#s-r').textContent=(d/1000).toFixed(2);{const rv=d>0?(d/1000).toFixed(2):'–';$('#o-r').textContent=rv;$('#l-r').textContent=rv}
 }
 function fitRoute(){if(route.length<2)return;const b=new maplibregl.LngLatBounds();route.forEach(p=>b.extend([p[0],p[1]]));map.fitBounds(b,{padding:50,maxZoom:17})}
 function pins(){
@@ -330,7 +354,7 @@ function onPos(p){
   if(mode==='run'&&route.length){
     let m=1e9;const k=111320,cx=Math.cos(ll[1]*Math.PI/180),q=[ll[0]*k*cx,ll[1]*k],X=c=>[c[0]*k*cx,c[1]*k];
     for(let i=0;i<route.length;i++){const a=X(route[i]),b=i<route.length-1?X(route[i+1]):a,d=segD(q,a,b);if(d<m)m=d}
-    const w=$('#warn'),w2=$('#owarn'),on=m>60,tx='Je bent '+Math.round(m)+' m van de route';w.style.display=on?'block':'none';w.textContent=tx;w2.style.display=on?'block':'none';w2.textContent=tx;
+    const w=$('#warn'),w2=$('#owarn'),on=m>60,tx='Je bent '+Math.round(m)+' m van de route';w.style.display=on?'block':'none';w.textContent=tx;w2.style.display=on?'block':'none';w2.textContent=tx;const w3=$('#lwarn');w3.style.display=on?'block':'none';w3.textContent=tx;
   }
   if(state!=='run')return;
   map.easeTo({center:ll,duration:600});
@@ -348,11 +372,12 @@ function render(){
   const ms=acc+(state==='run'?Date.now()-seg:0),v=ms>0?dist/(ms/1000):0;
   let cur=0;const n=pts.length;
   if(n>1){const l=pts[n-1];let o=pts[0];for(const q of pts){if(l.t-q.t<=20000){o=q;break}}if(l.t>o.t)cur=(l.cd-o.cd)/((l.t-o.t)/1000)}
-  const set=(k,t)=>{$('#s-'+k).textContent=t;$('#o-'+k).textContent=t};
+  const set=(k,t)=>{$('#s-'+k).textContent=t;$('#o-'+k).textContent=t;$('#l-'+k).textContent=t};
   set('t',tm(ms));set('d',(dist/1000).toFixed(2));set('p',state==='run'?pace(cur):'–');set('a',pace(v));
   set('v',(state==='run'?cur*3.6:state==='pause'?0:v*3.6).toFixed(1));
   $('#rs').hidden=state==='idle';$('#ogo').textContent=state==='pause'?'Hervat':'Pauze';
   const run=state!=='idle';
+  if(!run)$('#lk').hidden=true;
   if(!run&&$('#rs').classList.contains('mini')){$('#rs').classList.remove('mini');$('#okaart').textContent='Kaart'}
   if(document.body.classList.contains('running')!==run){document.body.classList.toggle('running',run);setTimeout(()=>map.resize(),50)}
 }
@@ -484,6 +509,14 @@ $('#okaart').onclick=()=>{
   const m=$('#rs').classList.toggle('mini');$('#okaart').textContent=m?'Cijfers':'Kaart';
   setTimeout(()=>{map.resize();if(m&&me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)})},60);
 };
+$('#olock').onclick=()=>{$('#lk').hidden=false};
+(()=>{
+  const t=$('#slt'),k=$('#slk'),x=$('#slx');let x0=0,drag=false,max=0;
+  k.addEventListener('pointerdown',e=>{drag=true;max=t.clientWidth-k.offsetWidth-2;x0=e.clientX-(parseFloat(k.style.left)||0);k.setPointerCapture(e.pointerId);k.style.transition='none'});
+  k.addEventListener('pointermove',e=>{if(!drag)return;const p=Math.max(0,Math.min(max,e.clientX-x0));k.style.left=p+'px';x.style.opacity=1-p/max});
+  const end=()=>{if(!drag)return;drag=false;const p=parseFloat(k.style.left)||0;if(p>=max*0.9)$('#lk').hidden=true;k.style.transition='left .25s';k.style.left='0px';x.style.opacity=1};
+  k.addEventListener('pointerup',end);k.addEventListener('pointercancel',end);
+})();
 $('#ogo').onclick=()=>$('#go').click();
 $('#ostop').onclick=()=>$('#stop').click();
 let cur=-1;
