@@ -141,7 +141,7 @@ body.running #p2,body.running #bar{display:none}
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.14</p>
+  <p class="hint">Versie 0.15</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -603,6 +603,7 @@ const IVL={warm:'INLOPEN',sprint:'SPRINT',rest:'RUST'},IVN={warm:'Inlopen',sprin
 const ivFmt=(u,v)=>u==='time'?ps(v)+' min':(v>=1000?+(v/1000).toFixed(2)+' km':v+' m');
 const ivSum=k=>{const b=ivp[k];return (k==='sprint'?ivp.reps+'× ':'')+ivFmt(b.u,b.u==='time'?b.s:b.m)+(b.p?' · '+ps(b.p)+'/km':'')};
 const rng=(a,b,s=1)=>{const r=[];for(let i=a;i<=b;i+=s)r.push(i);return r};
+const IVT=[0,...rng(5,180,5),...rng(195,600,15),...rng(630,1800,30),...rng(1860,3600,60)],IVM=[0,...rng(50,2000,50),...rng(2100,5000,100),...rng(5250,10000,250)];
 function wheel(items,idx,cb,lab,h=150){
   const w=document.createElement('div'),pd=(h-40)/2;w.className='wh';w.style.height=h+'px';
   w.innerHTML=`<div class="wb" style="top:${pd}px"></div><div class="whs" style="padding:${pd}px 0">${items.map(t=>`<div>${t}</div>`).join('')}</div>${lab?`<span class="wl" style="top:${pd}px">${lab}</span>`:''}`;
@@ -617,8 +618,8 @@ function ivBody(k){
   d.querySelector('.seg').onclick=e=>{const u=e.target.dataset.u;if(!u)return;b.u=u;wr('ivplan',ivp);ivRender()};
   const [r1,r2]=d.querySelectorAll('.whr');
   if(k==='sprint')r1.append(wheel(rng(1,30),ivp.reps-1,i=>{ivp.reps=i+1;sv()},'×'));
-  if(b.u==='time')r1.append(wheel(rng(0,60),Math.floor(b.s/60),i=>{b.s=i*60+b.s%60;sv()},'min'),wheel(rng(0,55,5).map(f2),Math.round(b.s%60/5),i=>{b.s=Math.floor(b.s/60)*60+i*5;sv()},'sec'));
-  else r1.append(wheel(rng(0,10),Math.floor(b.m/1000),i=>{b.m=i*1000+b.m%1000;sv()},'km'),wheel(rng(0,950,50),Math.round(b.m%1000/50),i=>{b.m=Math.floor(b.m/1000)*1000+i*50;sv()},'m'));
+  {const T=b.u==='time',A=T?IVT:IVM,v=T?b.s:b.m,ix=A.reduce((q,x,i)=>Math.abs(x-v)<Math.abs(A[q]-v)?i:q,0);
+  const w=wheel(A.map(x=>T?ps(x):x>=1000?(x/1000+'').replace('.',',')+' km':x+' m'),ix,i=>{if(T)b.s=A[i];else b.m=A[i];sv()},T?'min':'');w.style.flex=2;r1.append(w)}
   let pm=Math.floor(b.p/60),pe=b.p%60;const sp=()=>{b.p=pm?pm*60+pe:0;sv()};
   r2.append(wheel(['–',...rng(2,12)],pm?pm-1:0,i=>{pm=i?i+1:0;sp()},'min',110),wheel(rng(0,55,5).map(f2),Math.round(pe/5),i=>{pe=i*5;sp()},'sec',110));
   return d;
