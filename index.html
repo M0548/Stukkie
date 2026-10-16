@@ -102,6 +102,37 @@ body.running #p2,body.running #bar{display:none}
 #slx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa7b1;font-weight:700;font-size:17px;pointer-events:none;padding-left:56px}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;border:2px solid #fff;font:800 13px/22px system-ui;text-align:center;box-shadow:0 1px 4px #0006}
 .me{width:20px;height:20px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 3px #01acfa88}
+
+#ivp{flex:1;overflow:auto;padding:16px 14px 28px}
+#ivp h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+#ivp .hint{margin:4px 0 12px}
+.ivc{border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:14px;margin-top:10px;overflow:hidden}
+.ivc.sprint{border-left-color:#dc2626}.ivc.rest{border-left-color:#15803d}
+.ivh{display:flex;align-items:center;gap:8px;width:100%;padding:14px 12px;border:0;background:#fff;font-size:17px;color:#000;text-align:left}
+.ivh b{font-weight:800}.ivh span{margin-left:auto;color:#5c7280;font-weight:600;font-size:15px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--blue)}.dot.sprint{background:#dc2626}.dot.rest{background:#15803d}
+.ivh .dot{margin:0}
+.ivb{padding:0 12px 12px}
+.seg{display:flex;background:var(--tint);border-radius:10px;padding:3px;margin-bottom:6px}
+.seg button{flex:1;padding:9px;border:0;border-radius:8px;background:none;font-size:15px;font-weight:700;color:var(--deep)}.seg button.on{background:#fff;box-shadow:0 1px 3px #0002}
+.whr{display:flex;gap:4px}
+.wh{position:relative;flex:1}
+.wb{position:absolute;left:0;right:0;height:40px;background:var(--tint);border-radius:10px}
+.whs{position:relative;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(#0000,#000 30%,#000 70%,#0000)}
+.whs::-webkit-scrollbar{display:none}
+.whs div{height:40px;line-height:40px;text-align:center;font-size:22px;font-weight:700;scroll-snap-align:center;font-variant-numeric:tabular-nums}
+.wl{position:absolute;right:8px;line-height:40px;font-size:14px;font-weight:700;color:#5c7280;pointer-events:none}
+#iv{position:fixed;inset:0;z-index:7;display:flex;flex-direction:column;text-align:center;color:#fff;background:var(--blue);transition:background .3s;padding:calc(18px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom))}
+#iv.k-warm{background:var(--blue)}#iv.k-sprint{background:#dc2626}#iv.k-rest{background:#15803d}#iv.k-done{background:#000}
+#ivk{font-size:34px;font-weight:900;letter-spacing:.08em}#ivn{font-size:20px;font-weight:700;opacity:.85}
+#ivbig{flex:1;display:flex;align-items:center;justify-content:center;font-size:clamp(80px,28vw,170px);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+#ivbig small{font-size:.28em;margin-left:.15em;font-weight:800;opacity:.85}
+#iv.paused #ivbig{opacity:.45}
+#ivbw{height:12px;border-radius:6px;background:#fff4;overflow:hidden}#ivbar{display:block;height:100%;width:0;background:#fff;transition:width .25s linear}
+#ivh{font-size:26px;font-weight:800;min-height:34px;margin-top:12px}#ivx{font-size:18px;font-weight:700;opacity:.9;margin:4px 0 14px}
+.ivs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}.ivs span{display:block;font-size:12px;font-weight:700;opacity:.8}.ivs b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+#iv .row button{flex:1;padding:18px 6px;border:0;border-radius:14px;background:#fff3;color:#fff;font-size:18px;font-weight:800}#iv #ivstop{background:#000a}
+#ivf{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}#ivf.on{animation:fl .7s}@keyframes fl{0%{opacity:.9}100%{opacity:0}}
 </style></head><body>
 <header><img src="icon.png" alt=""><h1>Stukkie</h1><button id="cfg" aria-label="Instellingen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header>
 <div id="home">
@@ -110,7 +141,7 @@ body.running #p2,body.running #bar{display:none}
   <p>Leuk dat je gebruik wilt maken van deze app en hem wilt testen.</p>
   <p class="note">Let op: dit is een eerste versie en er moet nog van alles aangepast worden.</p>
   <div class="card" id="keycard" hidden><p><b>Eerst een sleutel instellen</b></p><p>Voor het plannen van routes heb je eenmalig een gratis sleutel van OpenRouteService nodig.</p><button class="btn" id="kopen">Sleutel instellen</button></div>
-  <p class="hint">Versie 0.13</p>
+  <p class="hint">Versie 0.14</p>
 </div>
 <div id="mw" hidden><div id="map"></div><div id="warn"></div><div id="toast" class="toast"></div><button id="loc" class="loc">Mijn locatie</button></div>
 
@@ -158,10 +189,13 @@ body.running #p2,body.running #bar{display:none}
   <p class="hint" id="rhint"></p>
 </div>
 
+<div id="ivp" hidden><h2>Intervaltraining</h2><p class="hint">Tik op een onderdeel om het in te stellen. Na de laatste sprint is de training klaar.</p><div id="ivc"></div><button class="btn" id="ivgo0" style="width:100%;margin-top:16px">Start interval</button></div>
+
 <div id="bar">
   <button id="b-home" data-t="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home</button>
   <button id="b-plan" data-t="plan"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Plannen</button>
   <button id="b-run" data-t="run"><svg viewBox="0 0 24 24"><circle cx="15.5" cy="4.5" r="1.6"/><path d="M13.5 8.5L11 13"/><path d="M13.4 8.8l3.3 1.7 2.3-1.2M12.6 9.4l-3 .6-1.6 2.6"/><path d="M11 13l3.5 2-1 5"/><path d="M11 13l-3 3.5-3.5 1.5"/></svg>Lopen</button>
+  <button id="b-iv" data-t="iv"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5"/><path d="M9.5 2.5h5"/><path d="M12 2.5v3.5"/><path d="M18.5 7l1.5-1.5"/></svg>Interval</button>
   <button id="b-hist" data-t="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Historie</button>
 </div>
 
@@ -191,6 +225,16 @@ body.running #p2,body.running #bar{display:none}
   </div>
   <div id="slt"><span id="slx">Schuif om te ontgrendelen</span><div id="slk"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div></div>
 </div>
+<div id="iv" hidden class="k-warm"><div id="ivf"></div>
+  <div id="ivk"></div><div id="ivn"></div>
+  <div id="ivbig"></div>
+  <div id="ivbw"><i id="ivbar"></i></div>
+  <div id="ivh"></div><div id="ivx"></div>
+  <div class="ivs"><div><span>Tijd</span><b id="ivt">00:00</b></div><div><span>Afstand km</span><b id="ivd">0.00</b></div><div><span>Tempo</span><b id="ivpc">–</b></div><div><span>Doel</span><b id="ivpt">–</b></div></div>
+  <div class="row"><button id="ivgo">Pauze</button><button id="ivskip">Volgende</button><button id="ivstop">Stop</button></div>
+</div>
+<label id="hpl" style="position:fixed;left:-99px;top:0;opacity:0;pointer-events:none"><input type="checkbox" id="hp" switch></label>
+<div id="toast2" class="toast" style="position:fixed;top:calc(10px + env(safe-area-inset-top));z-index:20"></div>
 <div id="sd" hidden><div class="dlg">
   <h3>Instellingen</h3>
   <p class="sec" style="margin-top:6px">Sleutel</p>
@@ -330,9 +374,9 @@ $('#del').onclick=()=>{
 
 function tab(m){
   stopFly();mode=m;mk.forEach(x=>x.setDraggable(m==='plan'));
-  ['home','plan','run','hist'].forEach(k=>$('#b-'+k).classList.toggle('on',k===m));
-  $('#home').hidden=m!=='home';$('#mw').hidden=m==='home'||m==='hist';
-  $('#p1').hidden=m!=='plan';$('#p2').hidden=m!=='run';$('#p3').hidden=m!=='hist';
+  ['home','plan','run','iv','hist'].forEach(k=>$('#b-'+k).classList.toggle('on',k===m));
+  $('#home').hidden=m!=='home';$('#mw').hidden=m==='home'||m==='hist'||m==='iv';
+  $('#p1').hidden=m!=='plan';$('#p2').hidden=m!=='run';$('#p3').hidden=m!=='hist';$('#ivp').hidden=m!=='iv';if(m==='iv')ivRender();
   if(m!=='run')$('#warn').style.display='none';
   if(m!=='hist'&&state==='idle'&&ready)map.getSource('trail').setData(empty);
   routeVis(m!=='hist');
@@ -375,7 +419,7 @@ function render(){
   const set=(k,t)=>{$('#s-'+k).textContent=t;$('#o-'+k).textContent=t;$('#l-'+k).textContent=t};
   set('t',tm(ms));set('d',(dist/1000).toFixed(2));set('p',state==='run'?pace(cur):'–');set('a',pace(v));
   set('v',(state==='run'?cur*3.6:state==='pause'?0:v*3.6).toFixed(1));
-  $('#rs').hidden=state==='idle';$('#ogo').textContent=state==='pause'?'Hervat':'Pauze';
+  $('#rs').hidden=state==='idle'||ivOn;$('#iv').hidden=!ivOn;$('#ogo').textContent=state==='pause'?'Hervat':'Pauze';
   const run=state!=='idle';
   if(!run)$('#lk').hidden=true;
   if(!run&&$('#rs').classList.contains('mini')){$('#rs').classList.remove('mini');$('#okaart').textContent='Kaart'}
@@ -393,24 +437,24 @@ $('#go').onclick=()=>{
   render();
 };
 $('#stop').onclick=()=>{
-  if(!confirm('Run stoppen?'))return;
+  if(!ivDone&&!confirm('Run stoppen?'))return;
   if(state==='run')acc+=Date.now()-seg;
   state='idle';
   let msg='';
   if(!pts.length)msg='Geen gps-punten ontvangen: de run is niet opgeslagen.';
   else if(dist<50&&!confirm('Deze run is korter dan 50 m. Toch opslaan?'))msg='Run niet opgeslagen.';
   else{
-    runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000),Math.round(q.cd),q.mv,q.alt==null?null:Math.round(q.alt)])});
+    runs.unshift({s:startTs,dist:Math.round(dist),ms:acc,iv:ivOn?ivSnap():undefined,pts:pts.map(q=>[+q.ll[0].toFixed(5),+q.ll[1].toFixed(5),Math.round(q.t/1000),Math.round(q.cd),q.mv,q.alt==null?null:Math.round(q.alt)])});
     if(wr('runs2',runs))msg='Run opgeslagen onder Historie.';
     else{runs.shift();alert('Opslaan mislukt: de opslag van Safari is vol. Exporteer en verwijder oude runs.')}
   }
   acc=0;dist=0;pts=[];gap=false;
   if(ready)map.getSource('trail').setData(empty);
-  render();hist();toast(msg);
+  ivReset();render();hist();toast(msg);
   $('#go').textContent='Start';$('#stop').hidden=true;
   if(lock){lock.release();lock=null}
 };
-function toast(t){if(!t)return;const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
+function toast(t){if(!t)return;const e=$(mode==='iv'?'#toast2':'#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',3500)}
 function hist(){const r=runs[0];$('#hist').textContent=r?'Laatste run: '+(r.dist/1000).toFixed(2)+' km in '+tm(r.ms)+'. Alle runs staan onder Historie.':'Je runs komen onder Historie te staan.'}
 const ps=s=>{const t=Math.round(s);return Math.floor(t/60)+':'+f2(t%60)};
 function ascent(r){
@@ -498,7 +542,7 @@ function routeVis(v){
   if(ready)['rc','rl'].forEach(id=>map.setLayoutProperty(id,'visibility',v?'visible':'none'));
   mk.forEach(x=>{x.getElement().style.display=v?'':'none'});
 }
-const title=r=>r.n||(new Date(r.s).getHours()<12?'Ochtendrun':new Date(r.s).getHours()<18?'Middagrun':'Avondrun');
+const title=r=>r.n||(r.iv?'Intervaltraining':new Date(r.s).getHours()<12?'Ochtendrun':new Date(r.s).getHours()<18?'Middagrun':'Avondrun');
 $('#ren').onclick=()=>{
   const r=runs[cur];if(!r)return;
   const n=prompt('Naam van de run?',r.n||'');if(n===null)return;
@@ -535,6 +579,7 @@ function openRun(i){
   const v=r.ms>0?r.dist/(r.ms/1000):0;$('#h-v').textContent=(v*3.6).toFixed(1);
   const a=ascent(r);$('#h-e').textContent=a==null?'–':a;
   const sp=splits(r);$('#h-s').innerHTML=sp.length?'<p class="sec">Tempo per kilometer (min/km)</p>'+sp.map(x=>`<div class="sp"><span>${x.l}</span><b>${ps(x.s)}</b></div>`).join(''):'';
+  $('#h-s').innerHTML=ivHtml(r)+$('#h-s').innerHTML;
   const c=r.pts.map(p=>[p[0],p[1]]);
   const draw=()=>{map.getSource('trail').setData(line(c));const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend(p));map.fitBounds(b,{padding:50,maxZoom:17})};
   ready?draw():map.once('load',draw);
@@ -551,6 +596,113 @@ $('#gpx').onclick=async()=>{
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
   const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;document.body.appendChild(a);a.click();a.remove();
 };
+/* ===== Interval ===== */
+const IV_D={reps:5,warm:{u:'time',s:600,m:1000,p:0},sprint:{u:'dist',s:90,m:400,p:0},rest:{u:'time',s:120,m:200,p:0}};
+let ivp=Object.assign({},IV_D,rd('ivplan')||{}),ivOpen='sprint',ivOn=false,ivDone=false,ivPh=[],ivI=0,ivS={ms:0,d:0},ivLog=[],ivBeep=0,ac=null;
+const IVL={warm:'INLOPEN',sprint:'SPRINT',rest:'RUST'},IVN={warm:'Inlopen',sprint:'Sprint',rest:'Rust'},IVK=['warm','sprint','rest'];
+const ivFmt=(u,v)=>u==='time'?ps(v)+' min':(v>=1000?+(v/1000).toFixed(2)+' km':v+' m');
+const ivSum=k=>{const b=ivp[k];return (k==='sprint'?ivp.reps+'× ':'')+ivFmt(b.u,b.u==='time'?b.s:b.m)+(b.p?' · '+ps(b.p)+'/km':'')};
+const rng=(a,b,s=1)=>{const r=[];for(let i=a;i<=b;i+=s)r.push(i);return r};
+function wheel(items,idx,cb,lab,h=150){
+  const w=document.createElement('div'),pd=(h-40)/2;w.className='wh';w.style.height=h+'px';
+  w.innerHTML=`<div class="wb" style="top:${pd}px"></div><div class="whs" style="padding:${pd}px 0">${items.map(t=>`<div>${t}</div>`).join('')}</div>${lab?`<span class="wl" style="top:${pd}px">${lab}</span>`:''}`;
+  const sc=w.querySelector('.whs');let t;
+  requestAnimationFrame(()=>{sc.scrollTop=idx*40});
+  sc.addEventListener('scroll',()=>{clearTimeout(t);t=setTimeout(()=>cb(Math.max(0,Math.min(items.length-1,Math.round(sc.scrollTop/40)))),80)});
+  return w;
+}
+function ivBody(k){
+  const b=ivp[k],d=document.createElement('div'),sv=()=>{wr('ivplan',ivp);ivSumUp()};d.className='ivb';
+  d.innerHTML=`<div class="seg"><button data-u="time" class="${b.u==='time'?'on':''}">Tijd</button><button data-u="dist" class="${b.u==='dist'?'on':''}">Afstand</button></div><div class="whr"></div><p class="sec" style="margin:6px 0 2px">Doeltempo (min/km)</p><div class="whr"></div>`;
+  d.querySelector('.seg').onclick=e=>{const u=e.target.dataset.u;if(!u)return;b.u=u;wr('ivplan',ivp);ivRender()};
+  const [r1,r2]=d.querySelectorAll('.whr');
+  if(k==='sprint')r1.append(wheel(rng(1,30),ivp.reps-1,i=>{ivp.reps=i+1;sv()},'×'));
+  if(b.u==='time')r1.append(wheel(rng(0,60),Math.floor(b.s/60),i=>{b.s=i*60+b.s%60;sv()},'min'),wheel(rng(0,55,5).map(f2),Math.round(b.s%60/5),i=>{b.s=Math.floor(b.s/60)*60+i*5;sv()},'sec'));
+  else r1.append(wheel(rng(0,10),Math.floor(b.m/1000),i=>{b.m=i*1000+b.m%1000;sv()},'km'),wheel(rng(0,950,50),Math.round(b.m%1000/50),i=>{b.m=Math.floor(b.m/1000)*1000+i*50;sv()},'m'));
+  let pm=Math.floor(b.p/60),pe=b.p%60;const sp=()=>{b.p=pm?pm*60+pe:0;sv()};
+  r2.append(wheel(['–',...rng(2,12)],pm?pm-1:0,i=>{pm=i?i+1:0;sp()},'min',110),wheel(rng(0,55,5).map(f2),Math.round(pe/5),i=>{pe=i*5;sp()},'sec',110));
+  return d;
+}
+function ivRender(){
+  const c=$('#ivc');c.innerHTML='';
+  for(const k of IVK){
+    const s=document.createElement('div');s.className='ivc '+k;
+    s.innerHTML=`<button class="ivh"><i class="dot ${k}"></i><b>${IVN[k]}</b><span id="sm-${k}">${ivSum(k)}</span></button>`;
+    s.firstChild.onclick=()=>{ivOpen=ivOpen===k?'':k;ivRender()};
+    if(ivOpen===k)s.append(ivBody(k));
+    c.append(s);
+  }
+}
+function ivSumUp(){for(const k of IVK){const e=$('#sm-'+k);if(e)e.textContent=ivSum(k)}}
+function ivBuild(){
+  const P=[],ok=b=>(b.u==='time'?b.s:b.m)>0,mk=(k,i)=>{const b=ivp[k];return {k,i,u:b.u,v:b.u==='time'?b.s:b.m,p:b.p}};
+  if(ok(ivp.warm))P.push(mk('warm'));
+  for(let i=1;i<=ivp.reps;i++){P.push(mk('sprint',i));if(i<ivp.reps&&ok(ivp.rest))P.push(mk('rest',i))}
+  return P;
+}
+function beep(f,d,at=0){if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+at;o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d+.02)}catch(e){}}
+function buzz(n){try{navigator.vibrate&&navigator.vibrate(Array(n*2-1).fill(180))}catch(e){}for(let i=0;i<n;i++)setTimeout(()=>{try{$('#hpl').click()}catch(e){}},i*220)}
+function cue(k){
+  if(k==='sprint'){beep(880,.25);beep(880,.25,.35);beep(1175,.4,.7);buzz(3)}
+  else if(k==='rest'){beep(520,.35);beep(520,.35,.45);buzz(2)}
+  else{beep(659,.2);beep(784,.2,.25);beep(1047,.5,.5);buzz(4)}
+}
+function flash(){const f=$('#ivf');f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
+$('#ivgo0').onclick=()=>{
+  if(state!=='idle')return toast('Er loopt al een run. Stop die eerst.');
+  const sv=ivp.sprint.u==='time'?ivp.sprint.s:ivp.sprint.m;
+  if(!(sv>0))return toast('Kies eerst een sprint (afstand of tijd).');
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}
+  ivPh=ivBuild();ivI=0;ivLog=[];ivDone=false;ivS={ms:0,d:0};ivBeep=0;ivOn=true;
+  $('#go').click();ivUI();render();
+};
+function ivAdv(ms){
+  const p=ivPh[ivI];ivLog.push({k:p.k,i:p.i,ms:Math.round(ms-ivS.ms),d:Math.round(dist-ivS.d)});ivI++;ivBeep=0;
+  if(ivI>=ivPh.length){ivDone=true;if(state==='run')$('#go').click();cue('done')}else{ivS={ms,d:dist};cue(ivPh[ivI].k)}
+  flash();
+}
+function ivTick(){
+  if(!ivOn)return;
+  if(!ivDone&&state==='run'){
+    const ms=acc+Date.now()-seg,p=ivPh[ivI],rem=p.v-(p.u==='time'?(ms-ivS.ms)/1000:dist-ivS.d);
+    if(p.u==='time'){const n=Math.ceil(rem);if(n>=1&&n<=3&&n!==ivBeep){ivBeep=n;beep(700,.12)}}
+    if(rem<=0)ivAdv(ms);
+  }
+  ivUI();
+}
+setInterval(ivTick,250);
+function ivUI(){
+  const o=$('#iv'),ms=acc+(state==='run'?Date.now()-seg:0);
+  if(ivDone){
+    o.className='k-done';$('#ivk').textContent='KLAAR';$('#ivn').textContent='Goed gedaan!';$('#ivbig').innerHTML=tm(ms)+'<small>totaal</small>';
+    $('#ivbar').style.width='100%';$('#ivx').textContent='';$('#ivh').textContent='';$('#ivpt').textContent='–';
+    $('#ivgo').hidden=$('#ivskip').hidden=true;$('#ivstop').textContent='Run opslaan';
+  }else if(ivPh[ivI]){
+    const p=ivPh[ivI],el=p.u==='time'?(ms-ivS.ms)/1000:dist-ivS.d,rem=Math.max(0,p.v-el),n=ivPh[ivI+1],cp=$('#o-p').textContent.split(':'),c=cp.length===2?+cp[0]*60+ +cp[1]:0,df=c-p.p;
+    o.className='k-'+p.k+(state==='pause'?' paused':'');
+    $('#ivk').textContent=IVL[p.k];
+    $('#ivn').textContent=p.k==='sprint'?p.i+' van '+ivp.reps:p.k==='rest'?'na sprint '+p.i:'warming-up';
+    $('#ivbig').innerHTML=p.u==='time'?tm(Math.ceil(rem)*1000):Math.ceil(rem/10)*10+'<small>m</small>';
+    $('#ivbar').style.width=Math.min(100,el/p.v*100)+'%';
+    $('#ivx').textContent=n?'Daarna: '+IVN[n.k]+' '+ivFmt(n.u,n.v):'Daarna: klaar';
+    $('#ivh').textContent=state==='pause'?'Gepauzeerd':p.p&&c?(df>10&&p.k!=='rest'?'Sneller':df<-10&&p.k!=='sprint'?'Rustiger':'Goed tempo'):'';
+    $('#ivpt').textContent=p.p?ps(p.p):'–';
+    $('#ivgo').hidden=$('#ivskip').hidden=false;$('#ivgo').textContent=state==='pause'?'Hervat':'Pauze';$('#ivstop').textContent='Stop';
+  }
+  $('#ivt').textContent=tm(ms);$('#ivd').textContent=(dist/1000).toFixed(2);$('#ivpc').textContent=$('#o-p').textContent;
+}
+$('#ivgo').onclick=()=>$('#go').click();
+$('#ivstop').onclick=()=>$('#stop').click();
+$('#ivskip').onclick=()=>{if(!ivDone&&state==='run')ivAdv(acc+Date.now()-seg)};
+function ivSnap(){
+  const p=ivPh[ivI];if(!ivDone&&p)ivLog.push({k:p.k,i:p.i,ms:Math.round(acc-ivS.ms),d:Math.round(dist-ivS.d),x:1});
+  return {reps:ivp.reps,log:ivLog.slice()};
+}
+function ivReset(){ivOn=false;ivDone=false;ivPh=[];ivLog=[]}
+function ivHtml(r){
+  if(!r.iv||!r.iv.log||!r.iv.log.length)return '';
+  return '<p class="sec">Intervallen</p>'+r.iv.log.map(x=>`<div class="sp"><span><i class="dot ${x.k}"></i>${IVN[x.k]}${x.i?' '+x.i:''}${x.x?' (afgebroken)':''}</span><b>${x.d} m · ${ps(x.ms/1000)} · ${pace(x.ms>0?x.d/(x.ms/1000):0)}/km</b></div>`).join('');
+}
 list();hist();watch();keyUI();tab('home');
 if(!key&&!rd('intro')){wr('intro',1);openKey()}
 $('#loc').onclick=()=>{if(me)map.easeTo({center:me,zoom:Math.max(map.getZoom(),15)});else{warned=false;alert('Nog geen locatie gevonden. Controleer of locatietoegang aan staat.')}};
